@@ -1,9 +1,0 @@
-node_modules/
-build.log
-vite.log
-harrier.log
-.node-compile-cache/
-server.js
-dist-preview/
-.built
-template-init/
