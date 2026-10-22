@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Linkplayer</title>
+<style>
+/* Layout: one stage column. Link bar on top, 16:9 player, control strip, then history. */
+:root {
+  --bg: #f3f1ee;
+  --panel: #ffffff;
+  --line: #d9d5cf;
+  --fg: #1c1b1a;
+  --muted: #6d6963;
+  --accent: #d6361f;
+  --accent-fg: #ffffff;
+  --stage: #0d0d0d;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121211; --panel: #1b1a19; --line: #2f2d2b; --fg: #efece7;
+    --muted: #9b968f; --accent: #ff5a3d; --accent-fg: #170a07; --stage: #000;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121211; --panel: #1b1a19; --line: #2f2d2b; --fg: #efece7;
+  --muted: #9b968f; --accent: #ff5a3d; --accent-fg: #170a07; --stage: #000;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--body);
+  font-size: 15px; line-height: 1.5;
+  padding-block: 24px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1080px; margin: 0 auto; display: grid; gap: 16px; }
+.wrap.theater { max-width: 1480px; }
+header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+h1 { font-family: var(--display); font-weight: 800; font-size: 28px; letter-spacing: -0.02em; margin: 0; text-wrap: balance; }
+h1 span { color: var(--accent); }
+.hint { color: var(--muted); font-size: 13px; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+form.bar { display: flex; gap: 8px; flex-wrap: wrap; }
+form.bar input {
+  flex: 1 1 280px; min-width: 0; padding: 12px 14px; border-radius: 6px;
+  background: var(--panel); border: 1px solid var(--line); font-family: var(--mono); font-size: 14px;
+}
+.btn {
+  padding: 11px 16px; border-radius: 6px; border: 1px solid var(--line);
+  background: var(--panel); font-weight: 600; font-size: 14px;
+}
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.on { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.btn.small { padding: 7px 10px; font-size: 13px; }
+
+.stage { background: var(--stage); border-radius: 8px; overflow: hidden; aspect-ratio: 16 / 9; max-width: 100%; position: relative; }
+.stage iframe, .stage #yt { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+ .empty, .errbox {
+  position: absolute; inset: 0; display: grid; place-content: center; gap: 10px;
+  text-align: center; padding: 24px; color: #d8d4ce;
+}
+.empty[hidden], .errbox[hidden] { display: none; }
+.empty strong, .errbox strong { font-family: var(--display); font-size: 22px; color: #fff; }
+.empty p, .errbox p { margin: 0; max-width: 46ch; color: #aaa59d; }
+.errbox { background: #0d0d0dee; z-index: 2; }
+.errbox a { color: #fff; font-weight: 700; }
+
+.meta { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: baseline; }
+.title { font-family: var(--display); font-size: 18px; font-weight: 700; min-width: 0; overflow-wrap: anywhere; }
+.clock { font-family: var(--mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.controls { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px; display: grid; gap: 14px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); min-width: 64px; }
+.speeds { display: flex; gap: 6px; flex-wrap: wrap; }
+input[type=range] { accent-color: var(--accent); width: 140px; max-width: 100%; }
+.ab { font-family: var(--mono); font-size: 13px; font-variant-numeric: tabular-nums; color: var(--muted); }
+
+.history h2 { font-family: var(--display); font-size: 15px; margin: 0 0 8px; letter-spacing: 0.02em; }
+.history ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.history li { display: flex; gap: 8px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 6px 6px 6px 12px; }
+.history li button.go { flex: 1; min-width: 0; text-align: left; background: none; border: 0; padding: 4px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.history li button.go:hover { color: var(--accent); }
+.history .id { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.history .x { background: none; border: 0; color: var(--muted); padding: 4px 8px; }
+.history .x:hover { color: var(--accent); }
+.keys { color: var(--muted); font-size: 12.5px; }
+kbd { font-family: var(--mono); font-size: 11.5px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 1px 5px; background: var(--panel); }
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 8px 14px; border-radius: 6px; font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.toast.show { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Instrument+Sans:wght@400;600&family=JetBrains+Mono:wght@400&display=swap">
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header>
+    <h1>Link<span>player</span></h1>
+    <div class="hint">Paste any YouTube link. Watch, Shorts, live, playlist, youtu.be or a bare video ID.</div>
+  </header>
+
+  <form class="bar" id="form" autocomplete="off">
+    <input id="url" type="text" inputmode="url" spellcheck="false" placeholder="https://www.youtube.com/watch?v=..." aria-label="YouTube link">
+    <button class="btn primary" type="submit">Play</button>
+    <button class="btn" type="button" id="paste">Paste</button>
+  </form>
+
+  <div class="stage" id="stage">
+    <div id="yt"></div>
+    <div class="empty" id="empty">
+      <strong>Nothing loaded yet</strong>
+      <p>Paste a link above and press Play. You can also drop a link onto this page.</p>
+    </div>
+    <div class="errbox" id="err" hidden></div>
+  </div>
+
+  <div class="meta">
+    <div class="title" id="title">&nbsp;</div>
+    <div class="clock" id="clock">0:00 / 0:00</div>
+  </div>
+
+  <section class="controls" aria-label="Playback controls">
+    <div class="row">
+      <span class="label">Speed</span>
+      <div class="speeds" id="speeds"></div>
+    </div>
+    <div class="row">
+      <span class="label">Jump</span>
+      <button class="btn small" data-skip="-30">-30s</button>
+      <button class="btn small" data-skip="-10">-10s</button>
+      <button class="btn small" data-skip="-5">-5s</button>
+      <button class="btn small" id="toggle">Pause</button>
+      <button class="btn small" data-skip="5">+5s</button>
+      <button class="btn small" data-skip="10">+10s</button>
+      <button class="btn small" data-skip="30">+30s</button>
+    </div>
+    <div class="row">
+      <span class="label">Loop</span>
+      <button class="btn small" id="loop">Loop video</button>
+      <button class="btn small" id="setA">Set A</button>
+      <button class="btn small" id="setB">Set B</button>
+      <button class="btn small" id="clearAB">Clear A-B</button>
+      <span class="ab" id="ab">A --:--  B --:--</span>
+    </div>
+    <div class="row">
+      <span class="label">Sound</span>
+      <button class="btn small" id="mute">Mute</button>
+      <input type="range" id="vol" min="0" max="100" value="100" aria-label="Volume">
+      <span class="label" style="min-width:0;margin-left:8px">View</span>
+      <button class="btn small" id="theater">Theater</button>
+      <button class="btn small" id="copy">Copy link</button>
+      <button class="btn small" id="open">Open on YouTube</button>
+    </div>
+    <div class="keys">
+      Shortcuts when the page (not the video) has focus:
+      <kbd>Space</kbd> play/pause &nbsp; <kbd>J</kbd>/<kbd>L</kbd> -10/+10s &nbsp; <kbd>←</kbd>/<kbd>→</kbd> -5/+5s &nbsp;
+      <kbd>[</kbd>/<kbd>]</kbd> speed &nbsp; <kbd>A</kbd>/<kbd>B</kbd> loop points &nbsp; <kbd>M</kbd> mute &nbsp; <kbd>T</kbd> theater
+    </div>
+  </section>
+
+  <section class="history" id="historyBox" hidden>
+    <h2>Recent</h2>
+    <ul id="history"></ul>
+  </section>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var SPEEDS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+  var player = null, apiReady = false, pending = null;
+  var cur = { video: null, list: null };
+  var loopOn = false, A = null, B = null, speed = 1;
+  var tickTimer = null;
+
+  /* ---------- link parsing ---------- */
+  function parse(raw) {
+    raw = (raw || "").trim();
+    if (!raw) return null;
+    var id = /^[A-Za-z0-9_-]{11}$/;
+    if (id.test(raw)) return { video: raw, list: null };
+    if (/^(PL|UU|FL|OL|LL|RD)[A-Za-z0-9_-]{10,}$/.test(raw)) return { video: null, list: raw };
+    var u;
+    try { u = new URL(/^[a-z]+:\/\//i.test(raw) ? raw : "https://" + raw); } catch (e) { return null; }
+    var host = u.hostname.replace(/^(www|m|music)\./, "");
+    var video = null, list = u.searchParams.get("list");
+    if (host === "youtu.be") video = u.pathname.split("/")[1];
+    else if (/(^|\.)youtube(-nocookie)?\.com$/.test(host)) {
+      var p = u.pathname.split("/").filter(Boolean);
+      if (u.searchParams.get("v")) video = u.searchParams.get("v");
+      else if (["shorts", "embed", "live", "v", "e"].indexOf(p[0]) > -1) video = p[1];
+      if (p[0] === "embed" && p[1] === "videoseries") video = null;
+    } else return null;
+    if (video && !id.test(video)) video = null;
+    if (!video && !list) return null;
+    var t = parseInt(u.searchParams.get("t") || u.searchParams.get("start") || "0", 10);
+    return { video: video, list: list, start: isNaN(t) ? 0 : t };
+  }
+
+  /* ---------- helpers ---------- */
+  function fmt(s) {
+    s = Math.max(0, Math.floor(s || 0));
+    var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60;
+    return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(x).padStart(2, "0");
+  }
+  var toastT;
+  function toast(msg) {
+    var t = $("toast"); t.textContent = msg; t.classList.add("show");
+    clearTimeout(toastT); toastT = setTimeout(function () { t.classList.remove("show"); }, 1600);
+  }
+  function ytUrl() {
+    if (!cur.video && !cur.list) return "";
+    var q = [];
+    if (cur.video) q.push("v=" + cur.video);
+    if (cur.list) q.push("list=" + cur.list);
+    return cur.video ? "https://www.youtube.com/watch?" + q.join("&") : "https://www.youtube.com/playlist?list=" + cur.list;
+  }
+  function ready() { return player && typeof player.getCurrentTime === "function"; }
+  function store(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function load(k, d) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } }
+
+  /* ---------- YouTube API ---------- */
+  window.onYouTubeIframeAPIReady = function () {
+    apiReady = true;
+    if (pending) { var p = pending; pending = null; play(p); }
+  };
+  var s = document.createElement("script");
+  s.src = "https://www.youtube.com/iframe_api";
+  s.onerror = function () { showErr("Could not reach YouTube", "The YouTube player script did not load. Check your connection or any content blocker, then reload."); };
+  document.head.appendChild(s);
+
+  function showErr(head, body, withLink) {
+    var e = $("err");
+    e.innerHTML = "<strong></strong><p></p>";
+    e.firstChild.textContent = head;
+    e.lastChild.textContent = body;
+    if (withLink && ytUrl()) {
+      var a = document.createElement("a"); a.href = ytUrl(); a.target = "_blank"; a.rel = "noopener";
+      a.textContent = "Open this video on YouTube";
+      e.appendChild(a);
+    }
+    e.hidden = false;
+  }
+
+  var ERRORS = {
+    2: ["That link has a bad video ID", "Check the link and try again."],
+    5: ["The player hit a playback error", "Try again in a moment, or open it on YouTube."],
+    100: ["Video not found", "It was removed or set to private."],
+    101: ["The owner turned off embedding for this video", "It can only be watched on YouTube itself."],
+    150: ["The owner turned off embedding for this video", "It can only be watched on YouTube itself."],
+    153: ["The player could not verify this page", "If you opened this file straight from disk, serve it over http instead (see the note that came with it), or open the video on YouTube."]
+  };
+
+  function play(parsed) {
+    if (!apiReady) { pending = parsed; return; }
+    cur = { video: parsed.video, list: parsed.list };
+    $("empty").hidden = true; $("err").hidden = true;
+    var vars = { playsinline: 1, rel: 0, modestbranding: 1, autoplay: 1, start: parsed.start || 0 };
+    if (parsed.list) { vars.listType = "playlist"; vars.list = parsed.list; }
+    if (/^https?:$/.test(location.protocol)) vars.origin = location.origin;
+    if (player && player.destroy) { try { player.destroy(); } catch (e) {} player = null; }
+    var host = $("stage"), old = $("yt");
+    if (old) old.remove();
+    var d = document.createElement("div"); d.id = "yt"; host.insertBefore(d, host.firstChild);
+    player = new YT.Player("yt", {
+      videoId: parsed.video || undefined,
+      playerVars: vars,
+      events: {
+        onReady: function (e) {
+          e.target.setPlaybackRate(speed);
+          setTitle();
+        },
+        onStateChange: onState,
+        onError: function (e) {
+          var m = ERRORS[e.data] || ["Playback error " + e.data, "Try opening it on YouTube."];
+          showErr(m[0], m[1], true);
+        },
+        onPlaybackRateChange: function (e) { speed = e.data; paintSpeeds(); }
+      }
+    });
+    var url = new URL(location.href);
+    if (/^https?:$/.test(location.protocol)) {
+      try { url.searchParams.set("v", parsed.video || parsed.list); history.replaceState(null, "", url); } catch (e) {}
+    }
+  }
+
+  function setTitle() {
+    if (!ready()) return;
+    var d = player.getVideoData ? player.getVideoData() : null;
+    if (d && d.title) {
+      $("title").textContent = d.title;
+      document.title = d.title + " | Linkplayer";
+      if (d.video_id) remember(d.video_id, d.title);
+    }
+  }
+  function onState(e) {
+    var st = e.data;
+    $("toggle").textContent = st === 1 ? "Pause" : "Play";
+    if (st === 1 || st === 5) setTitle();
+    if (st === 1) { cur.video = player.getVideoData().video_id || cur.video; }
+    if (st === 0 && loopOn && !cur.list) { player.seekTo(0, true); player.playVideo(); }
+  }
+
+  /* ---------- controls ---------- */
+  function paintSpeeds() {
+    document.querySelectorAll("#speeds .btn").forEach(function (b) {
+      b.classList.toggle("on", parseFloat(b.dataset.s) === speed);
+    });
+  }
+  function setSpeed(v) {
+    speed = Math.min(2, Math.max(0.25, v));
+    if (ready()) player.setPlaybackRate(speed);
+    paintSpeeds();
+  }
+  SPEEDS.forEach(function (v) {
+    var b = document.createElement("button");
+    b.className = "btn small"; b.type = "button"; b.dataset.s = v; b.textContent = v + "x";
+    b.onclick = function () { setSpeed(v); };
+    $("speeds").appendChild(b);
+  });
+  paintSpeeds();
+
+  function skip(n) { if (ready()) { player.seekTo(Math.max(0, player.getCurrentTime() + n), true); } }
+  document.querySelectorAll("[data-skip]").forEach(function (b) {
+    b.onclick = function () { skip(parseFloat(b.dataset.skip)); };
+  });
+  function toggle() {
+    if (!ready()) return;
+    player.getPlayerState() === 1 ? player.pauseVideo() : player.playVideo();
+  }
+  $("toggle").onclick = toggle;
+
+  function setLoop(v) {
+    loopOn = v;
+    $("loop").classList.toggle("on", loopOn);
+    $("loop").textContent = loopOn ? "Looping" : "Loop video";
+    if (ready() && cur.list && player.setLoop) player.setLoop(loopOn);
+  }
+  $("loop").onclick = function () { setLoop(!loopOn); };
+
+  function paintAB() {
+    $("ab").textContent = "A " + (A == null ? "--:--" : fmt(A)) + "   B " + (B == null ? "--:--" : fmt(B));
+    $("setA").classList.toggle("on", A != null);
+    $("setB").classList.toggle("on", B != null);
+  }
+  function setA() { if (ready()) { A = player.getCurrentTime(); if (B != null && B <= A) B = null; paintAB(); toast("Loop start " + fmt(A)); } }
+  function setB() {
+    if (!ready()) return;
+    var t = player.getCurrentTime();
+    if (A == null) A = 0;
+    if (t <= A) { toast("Point B must come after A"); return; }
+    B = t; paintAB(); toast("Loop end " + fmt(B));
+  }
+  $("setA").onclick = setA; $("setB").onclick = setB;
+  $("clearAB").onclick = function () { A = B = null; paintAB(); };
+
+  function setMute() {
+    if (!ready()) return;
+    player.isMuted() ? player.unMute() : player.mute();
+    $("mute").textContent = player.isMuted() ? "Unmute" : "Mute";
+  }
+  $("mute").onclick = setMute;
+  $("vol").oninput = function () {
+    if (!ready()) return;
+    player.setVolume(+this.value);
+    if (+this.value > 0 && player.isMuted()) { player.unMute(); $("mute").textContent = "Mute"; }
+  };
+
+  function setTheater() {
+    var w = $("wrap"); w.classList.toggle("theater");
+    $("theater").classList.toggle("on", w.classList.contains("theater"));
+  }
+  $("theater").onclick = setTheater;
+
+  $("copy").onclick = function () {
+    var t = ytUrl(); if (!t) return;
+    if (ready() && cur.video) { var s = Math.floor(player.getCurrentTime()); if (s > 3) t += "&t=" + s; }
+    var done = function () { toast("Link copied"); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, function () { $("url").value = t; $("url").select(); toast("Press Ctrl+C to copy"); });
+    else { $("url").value = t; $("url").select(); toast("Press Ctrl+C to copy"); }
+  };
+  $("open").onclick = function () { var u = ytUrl(); if (u) window.open(u, "_blank", "noopener"); };
+
+  /* ---------- timer: clock + A-B loop ---------- */
+  setInterval(function () {
+    if (!ready() || !player.getDuration) return;
+    var t = player.getCurrentTime(), d = player.getDuration();
+    $("clock").textContent = fmt(t) + " / " + fmt(d);
+    if (A != null && B != null && player.getPlayerState() === 1 && t >= B) player.seekTo(A, true);
+  }, 200);
+
+  /* ---------- input ---------- */
+  function submit(raw) {
+    var p = parse(raw);
+    if (!p) { toast("That does not look like a YouTube link"); return; }
+    A = B = null; paintAB();
+    play(p);
+  }
+  $("form").onsubmit = function (e) { e.preventDefault(); submit($("url").value); $("url").blur(); };
+  $("paste").onclick = function () {
+    if (navigator.clipboard && navigator.clipboard.readText) {
+      navigator.clipboard.readText().then(function (t) { $("url").value = t; submit(t); }, function () { $("url").focus(); toast("Paste with Ctrl+V"); });
+    } else { $("url").focus(); toast("Paste with Ctrl+V"); }
+  };
+  $("url").addEventListener("paste", function () { var el = this; setTimeout(function () { if (parse(el.value)) submit(el.value); }, 0); });
+  window.addEventListener("dragover", function (e) { e.preventDefault(); });
+  window.addEventListener("drop", function (e) {
+    e.preventDefault();
+    var t = e.dataTransfer.getData("text/uri-list") || e.dataTransfer.getData("text/plain");
+    if (t) { $("url").value = t.split("\n")[0]; submit($("url").value); }
+  });
+
+  /* ---------- history ---------- */
+  var hist = load("lp_hist", []);
+  function remember(id, title) {
+    hist = hist.filter(function (h) { return h.id !== id; });
+    hist.unshift({ id: id, title: title });
+    hist = hist.slice(0, 12); store("lp_hist", hist); paintHist();
+  }
+  function paintHist() {
+    var ul = $("history"); ul.innerHTML = "";
+    $("historyBox").hidden = !hist.length;
+    hist.forEach(function (h) {
+      var li = document.createElement("li");
+      var go = document.createElement("button"); go.className = "go"; go.type = "button";
+      go.textContent = h.title;
+      go.onclick = function () { $("url").value = "https://youtu.be/" + h.id; submit(h.id); };
+      var id = document.createElement("span"); id.className = "id"; id.textContent = h.id;
+      var x = document.createElement("button"); x.className = "x"; x.type = "button"; x.textContent = "x";
+      x.setAttribute("aria-label", "Remove " + h.title);
+      x.onclick = function () { hist = hist.filter(function (z) { return z.id !== h.id; }); store("lp_hist", hist); paintHist(); };
+      li.appendChild(go); li.appendChild(id); li.appendChild(x); ul.appendChild(li);
+    });
+  }
+  paintHist();
+
+  /* ---------- keyboard ---------- */
+  document.addEventListener("keydown", function (e) {
+    var tag = (e.target.tagName || "").toLowerCase();
+    if (tag === "input" || tag === "textarea" || e.ctrlKey || e.metaKey || e.altKey) return;
+    var k = e.key.toLowerCase(), used = true;
+    if (k === " " || k === "k") toggle();
+    else if (k === "j") skip(-10);
+    else if (k === "l") skip(10);
+    else if (e.key === "ArrowLeft") skip(-5);
+    else if (e.key === "ArrowRight") skip(5);
+    else if (k === "[") setSpeed(SPEEDS[Math.max(0, SPEEDS.indexOf(speed) - 1)] || speed - 0.25);
+    else if (k === "]") setSpeed(SPEEDS[Math.min(SPEEDS.length - 1, SPEEDS.indexOf(speed) + 1)] || speed + 0.25);
+    else if (k === "a") setA();
+    else if (k === "b") setB();
+    else if (k === "m") setMute();
+    else if (k === "t") setTheater();
+    else used = false;
+    if (used && tag !== "button") e.preventDefault();
+  });
+
+  /* ---------- start from ?v= or #link ---------- */
+  var q = new URLSearchParams(location.search).get("v") || decodeURIComponent(location.hash.slice(1));
+  if (q) { $("url").value = q; var p0 = parse(q); if (p0) play(p0); }
+})();
+</script>
+</body>
+</html>
