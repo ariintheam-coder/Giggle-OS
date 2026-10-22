@@ -1,5 +1,7 @@
-import { defineConfig } from "/usr/lib/sfs-assistant-dev/platform-config.js";
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   base: "./",
+  plugins: [react()],
 });
