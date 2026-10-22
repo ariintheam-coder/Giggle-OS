@@ -1,0 +1,1846 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101312">
+  <title>Wildbound — Pokémon Run</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+    :root {
+      --color-primary: #b7f34a;
+      --color-primary-contrast: #151a0c;
+      --color-bg: #101312;
+      --color-surface: #1a201d;
+      --color-text: #f1f5ec;
+      --color-muted: #9ba79e;
+      --color-accent: #ff775f;
+      --color-line: #303a34;
+      --color-soft: #242c27;
+      --color-type-bug: #a8c94a;
+      --color-type-dark: #9b8293;
+      --color-type-dragon: #8b78ed;
+      --color-type-electric: #f5cb4b;
+      --color-type-fairy: #e9a2cf;
+      --color-type-fighting: #d87560;
+      --color-type-fire: #fa8059;
+      --color-type-flying: #a99be9;
+      --color-type-ghost: #8974b7;
+      --color-type-grass: #75c878;
+      --color-type-ground: #d5ad65;
+      --color-type-ice: #82d3d1;
+      --color-type-normal: #aaa99b;
+      --color-type-poison: #bb76c7;
+      --color-type-psychic: #ef7da0;
+      --color-type-rock: #bd9d5b;
+      --color-type-steel: #9cb2bf;
+      --color-type-water: #67a7ef;
+      --font-heading: 'Space Grotesk', sans-serif;
+      --font-body: 'Space Grotesk', sans-serif;
+      --font-mono: 'DM Mono', monospace;
+      --radius: 1.15rem;
+      --radius-sm: .65rem;
+      --radius-xs: .3rem;
+      --radius-full: 999px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: var(--font-body);
+    }
+
+    button {
+      color: inherit;
+      font: inherit;
+    }
+
+    button:focus-visible {
+      outline: 3px solid var(--color-primary);
+      outline-offset: 3px;
+    }
+
+    ::selection {
+      color: var(--color-primary-contrast);
+      background: var(--color-primary);
+    }
+
+    .font-display {
+      font-family: var(--font-heading);
+    }
+
+    .type-bug {
+      --type-color: var(--color-type-bug);
+    }
+
+    .type-dark {
+      --type-color: var(--color-type-dark);
+    }
+
+    .type-dragon {
+      --type-color: var(--color-type-dragon);
+    }
+
+    .type-electric {
+      --type-color: var(--color-type-electric);
+    }
+
+    .type-fairy {
+      --type-color: var(--color-type-fairy);
+    }
+
+    .type-fighting {
+      --type-color: var(--color-type-fighting);
+    }
+
+    .type-fire {
+      --type-color: var(--color-type-fire);
+    }
+
+    .type-flying {
+      --type-color: var(--color-type-flying);
+    }
+
+    .type-ghost {
+      --type-color: var(--color-type-ghost);
+    }
+
+    .type-grass {
+      --type-color: var(--color-type-grass);
+    }
+
+    .type-ground {
+      --type-color: var(--color-type-ground);
+    }
+
+    .type-ice {
+      --type-color: var(--color-type-ice);
+    }
+
+    .type-normal {
+      --type-color: var(--color-type-normal);
+    }
+
+    .type-poison {
+      --type-color: var(--color-type-poison);
+    }
+
+    .type-psychic {
+      --type-color: var(--color-type-psychic);
+    }
+
+    .type-rock {
+      --type-color: var(--color-type-rock);
+    }
+
+    .type-steel {
+      --type-color: var(--color-type-steel);
+    }
+
+    .type-water {
+      --type-color: var(--color-type-water);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    body {
+      background-image: radial-gradient(ellipse at 50% -30%, var(--color-soft), transparent 55%);
+      background-attachment: fixed;
+    }
+
+    .app-shell {
+      position: relative;
+    }
+
+    .brand {
+      text-decoration: none;
+      color: var(--color-text);
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border: 1px solid var(--color-primary);
+      border-radius: var(--radius-sm);
+      background: var(--color-primary);
+      color: var(--color-primary-contrast);
+      font-family: var(--font-heading);
+      font-size: 23px;
+      font-weight: 900;
+      transform: rotate(-5deg);
+    }
+
+    .run-badge,
+    .round-pill,
+    .api-note {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-full);
+      padding: 9px 13px;
+      color: var(--color-muted);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: .12em;
+    }
+
+    .run-badge span:last-child {
+      color: var(--color-text);
+    }
+
+    .live-dot,
+    .status-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      box-shadow: 0 0 12px var(--color-primary);
+    }
+
+    .screen-card {
+      display: flex;
+      min-height: 400px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--color-line);
+      border-radius: calc(var(--radius) + .5rem);
+      background: var(--color-surface);
+      padding: 48px 22px;
+      text-align: center;
+    }
+
+    .loading-card {
+      min-height: 65vh;
+      border: 0;
+      background: transparent;
+    }
+
+    .loader-ball {
+      display: grid;
+      width: 58px;
+      height: 58px;
+      place-items: center;
+      margin-bottom: 28px;
+      border: 3px solid var(--color-primary);
+      border-radius: 50%;
+      animation: spin 1.4s linear infinite;
+    }
+
+    .loader-ball span {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--color-primary);
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin: 0 0 13px;
+      color: var(--color-primary);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: .17em;
+    }
+
+    .eyebrow-line {
+      display: inline-block;
+      width: 23px;
+      height: 1px;
+      background: var(--color-primary);
+    }
+
+    .intro-grid {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 36px;
+      padding: 42px 0 54px;
+    }
+
+    .hero-title {
+      margin: 0 0 17px;
+      font-size: clamp(46px, 7vw, 78px);
+      line-height: .98;
+      letter-spacing: -.065em;
+    }
+
+    .hero-title span {
+      color: var(--color-primary);
+    }
+
+    .starter-aside {
+      position: relative;
+      display: flex;
+      width: 218px;
+      min-height: 186px;
+      flex: 0 0 218px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius);
+      background: var(--color-surface);
+      text-align: center;
+    }
+
+    .starter-aside::before,
+    .starter-aside::after {
+      position: absolute;
+      width: 170px;
+      height: 170px;
+      border: 1px solid var(--color-line);
+      border-radius: 50%;
+      content: '';
+    }
+
+    .starter-aside::before {
+      transform: scale(.72);
+    }
+
+    .starter-aside::after {
+      transform: scale(1.28);
+    }
+
+    .aside-icon {
+      z-index: 1;
+      color: var(--color-primary);
+      font-size: 30px;
+    }
+
+    .starter-aside p {
+      z-index: 1;
+      margin: 8px 0 5px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      line-height: 1.6;
+    }
+
+    .aside-sub {
+      z-index: 1;
+      color: var(--color-muted);
+      font-size: 10px;
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .section-heading .eyebrow {
+      margin-bottom: 6px;
+    }
+
+    .section-heading h2 {
+      margin: 0;
+    }
+
+    .api-note {
+      padding: 8px 11px;
+      font-size: 9px;
+    }
+
+    .starter-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .starter-card {
+      position: relative;
+      display: flex;
+      min-height: 276px;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius);
+      background: var(--color-surface);
+      padding: 14px;
+      text-align: left;
+      cursor: pointer;
+      transition: transform .2s ease, border-color .2s ease, background .2s ease;
+    }
+
+    .starter-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--color-primary);
+      background: var(--color-soft);
+    }
+
+    .starter-card::before {
+      position: absolute;
+      top: 39px;
+      right: -35px;
+      width: 160px;
+      height: 160px;
+      border: 1px solid var(--color-line);
+      border-radius: 50%;
+      content: '';
+    }
+
+    .starter-number {
+      color: var(--color-muted);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: .08em;
+    }
+
+    .starter-art {
+      position: relative;
+      display: grid;
+      height: 158px;
+      place-items: center;
+    }
+
+    .starter-art img {
+      z-index: 1;
+      width: 148px;
+      height: 148px;
+      object-fit: contain;
+      filter: drop-shadow(0 13px 12px var(--color-bg));
+      transition: transform .2s ease;
+    }
+
+    .starter-card:hover .starter-art img {
+      transform: scale(1.08) translateY(-4px);
+    }
+
+    .starter-card-bottom {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 5px;
+      margin-top: auto;
+    }
+
+    .starter-name {
+      margin: 0;
+      font-family: var(--font-heading);
+      font-size: 18px;
+      font-weight: 700;
+      text-transform: capitalize;
+    }
+
+    .type-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 6px;
+    }
+
+    .type-chip {
+      display: inline-flex;
+      align-items: center;
+      border-radius: var(--radius-full);
+      background: var(--type-color, var(--color-soft));
+      color: var(--color-primary-contrast);
+      padding: 4px 8px;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 500;
+      text-transform: uppercase;
+    }
+
+    .select-arrow {
+      display: grid;
+      width: 30px;
+      height: 30px;
+      flex: 0 0 30px;
+      place-items: center;
+      border: 1px solid var(--color-line);
+      border-radius: 50%;
+      color: var(--color-primary);
+      font-size: 16px;
+    }
+
+    .battle-topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 28px 0 13px;
+    }
+
+    .battle-topline .eyebrow {
+      margin: 0;
+    }
+
+    .round-pill {
+      color: var(--color-muted);
+    }
+
+    .round-pill span {
+      color: var(--color-primary);
+    }
+
+    .arena {
+      position: relative;
+      display: grid;
+      min-height: 350px;
+      grid-template-columns: 1fr 55px 1fr;
+      align-items: center;
+      overflow: hidden;
+      border: 1px solid var(--color-line);
+      border-radius: calc(var(--radius) + .25rem);
+      background: var(--color-surface);
+      padding: 18px 30px 26px;
+    }
+
+    .arena::before,
+    .arena::after {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      height: 48%;
+      content: '';
+      pointer-events: none;
+    }
+
+    .arena::before {
+      background: linear-gradient(180deg, transparent, var(--color-soft));
+    }
+
+    .arena::after {
+      bottom: 47%;
+      height: 1px;
+      background: var(--color-line);
+      opacity: .65;
+    }
+
+    .arena-glow {
+      position: absolute;
+      top: -160px;
+      left: 50%;
+      width: 480px;
+      height: 380px;
+      border-radius: 50%;
+      background: var(--color-soft);
+      filter: blur(20px);
+      opacity: .7;
+      transform: translateX(-50%);
+    }
+
+    .combatant {
+      z-index: 1;
+      display: flex;
+      min-width: 0;
+      flex-direction: column;
+    }
+
+    .player-combatant {
+      align-self: stretch;
+      justify-content: space-between;
+    }
+
+    .enemy-combatant {
+      align-self: stretch;
+      align-items: flex-end;
+      justify-content: space-between;
+      text-align: right;
+    }
+
+    .combatant-info {
+      width: min(100%, 270px);
+    }
+
+    .name-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .enemy-combatant .name-row,
+    .enemy-combatant .type-row {
+      justify-content: flex-end;
+    }
+
+    .name-row h2 {
+      margin: 0;
+      font-size: clamp(18px, 3vw, 24px);
+      text-transform: capitalize;
+    }
+
+    .level-tag {
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-full);
+      padding: 4px 7px;
+      color: var(--color-primary);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      white-space: nowrap;
+    }
+
+    .enemy-level {
+      color: var(--color-accent);
+    }
+
+    .health-wrap {
+      margin-top: 16px;
+    }
+
+    .health-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      color: var(--color-muted);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: .08em;
+    }
+
+    .health-meta span:first-child {
+      color: var(--color-primary);
+      font-weight: 700;
+    }
+
+    .enemy-combatant .health-meta span:first-child {
+      color: var(--color-accent);
+    }
+
+    .health-track {
+      height: 7px;
+      overflow: hidden;
+      border-radius: var(--radius-full);
+      background: var(--color-bg);
+    }
+
+    .health-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: var(--color-primary);
+      transition: width .35s ease;
+    }
+
+    .enemy-fill {
+      background: var(--color-accent);
+    }
+
+    .pokemon-stage {
+      position: relative;
+      display: grid;
+      width: 100%;
+      min-height: 185px;
+      place-items: center;
+    }
+
+    .player-stage {
+      justify-items: start;
+    }
+
+    .enemy-stage {
+      justify-items: end;
+    }
+
+    .pokemon-sprite {
+      z-index: 1;
+      width: clamp(135px, 23vw, 230px);
+      height: clamp(135px, 23vw, 230px);
+      object-fit: contain;
+      filter: drop-shadow(0 12px 10px var(--color-bg));
+      animation: bob 2.8s ease-in-out infinite;
+    }
+
+    .enemy-sprite {
+      transform: scaleX(-1);
+      animation: bob-enemy 2.8s ease-in-out infinite;
+    }
+
+    @keyframes bob {
+      50% {
+        transform: translateY(-7px);
+      }
+    }
+
+    @keyframes bob-enemy {
+      50% {
+        transform: scaleX(-1) translateY(-7px);
+      }
+    }
+
+    .stage-shadow {
+      position: absolute;
+      bottom: 15px;
+      width: 145px;
+      height: 23px;
+      border-radius: 50%;
+      background: var(--color-bg);
+      opacity: .6;
+      filter: blur(3px);
+    }
+
+    .versus {
+      z-index: 2;
+      display: grid;
+      width: 38px;
+      height: 38px;
+      place-items: center;
+      border: 1px solid var(--color-line);
+      border-radius: 50%;
+      background: var(--color-bg);
+      color: var(--color-muted);
+      font-family: var(--font-mono);
+      font-size: 9px;
+    }
+
+    .damage-float {
+      position: absolute;
+      z-index: 4;
+      top: 45%;
+      left: 70%;
+      color: var(--color-accent);
+      font-family: var(--font-heading);
+      font-size: 28px;
+      font-weight: 700;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .damage-float.pop {
+      animation: pop-damage .75s ease-out;
+    }
+
+    @keyframes pop-damage {
+      0% {
+        opacity: 0;
+        transform: translateY(10px) scale(.7);
+      }
+
+      25% {
+        opacity: 1;
+        transform: translateY(-6px) scale(1.2);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translateY(-35px) scale(1);
+      }
+    }
+
+    .battle-lower {
+      display: grid;
+      grid-template-columns: .9fr 1.3fr;
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .battle-log-panel,
+    .action-panel {
+      min-width: 0;
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius);
+      background: var(--color-surface);
+      padding: 17px;
+    }
+
+    .panel-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--color-muted);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: .13em;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+    }
+
+    .battle-message {
+      min-height: 48px;
+      margin: 17px 0 14px;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.55;
+    }
+
+    .run-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      border-top: 1px solid var(--color-line);
+      padding-top: 12px;
+      color: var(--color-muted);
+      font-family: var(--font-mono);
+      font-size: 9px;
+    }
+
+    .run-stats b {
+      color: var(--color-text);
+      font-weight: 500;
+    }
+
+    .turn-hint {
+      margin-left: auto;
+      color: var(--color-primary);
+      font-size: 8px;
+    }
+
+    .action-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 13px;
+    }
+
+    .action-button {
+      display: flex;
+      min-height: 58px;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid var(--color-line);
+      border-radius: calc(var(--radius) - .45rem);
+      background: var(--color-bg);
+      padding: 8px 10px;
+      text-align: left;
+      cursor: pointer;
+      transition: border-color .18s ease, transform .18s ease, opacity .18s ease;
+    }
+
+    .action-button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      border-color: var(--color-primary);
+    }
+
+    .action-button:disabled {
+      cursor: not-allowed;
+      opacity: .45;
+    }
+
+    .action-icon {
+      display: grid;
+      width: 31px;
+      height: 31px;
+      flex: 0 0 31px;
+      place-items: center;
+      border-radius: var(--radius-sm);
+      background: var(--color-soft);
+      color: var(--color-primary);
+      font-size: 18px;
+    }
+
+    .special-icon {
+      color: var(--color-accent);
+    }
+
+    .guard-icon {
+      color: var(--color-type-ice);
+    }
+
+    .potion-icon {
+      color: var(--color-type-fairy);
+    }
+
+    .action-button b,
+    .action-button small {
+      display: block;
+    }
+
+    .action-button b {
+      font-size: 11px;
+    }
+
+    .action-button small {
+      margin-top: 2px;
+      color: var(--color-muted);
+      font-size: 9px;
+    }
+
+    .action-button kbd {
+      margin-left: auto;
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-xs);
+      padding: 2px 5px;
+      color: var(--color-muted);
+      font-family: var(--font-mono);
+      font-size: 9px;
+    }
+
+    .next-button,
+    .restart-button {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      justify-content: space-between;
+      border: 0;
+      border-radius: calc(var(--radius) - .35rem);
+      background: var(--color-primary);
+      color: var(--color-primary-contrast);
+      padding: 15px 17px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: filter .18s ease, transform .18s ease;
+    }
+
+    .next-button {
+      margin-top: 13px;
+    }
+
+    .next-button:hover,
+    .restart-button:hover {
+      filter: brightness(1.08);
+      transform: translateY(-2px);
+    }
+
+    .upgrade-card,
+    .gameover-card {
+      margin: 40px auto;
+    }
+
+    .upgrade-card {
+      margin: 40px auto;
+    }
+
+    .reward-spark,
+    .gameover-mark {
+      display: grid;
+      width: 58px;
+      height: 58px;
+      place-items: center;
+      margin-bottom: 22px;
+      border-radius: 50%;
+      background: var(--color-soft);
+      color: var(--color-primary);
+      font-size: 28px;
+    }
+
+    .upgrade-card .eyebrow,
+    .gameover-card .eyebrow {
+      justify-content: center;
+    }
+
+    .upgrade-grid {
+      display: grid;
+      width: min(100%, 700px);
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 30px;
+    }
+
+    .upgrade-option {
+      display: flex;
+      min-height: 145px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius);
+      background: var(--color-bg);
+      padding: 17px;
+      cursor: pointer;
+      transition: border-color .18s ease, transform .18s ease;
+    }
+
+    .upgrade-option:hover {
+      transform: translateY(-4px);
+      border-color: var(--color-primary);
+    }
+
+    .upgrade-icon {
+      margin-bottom: 9px;
+      color: var(--color-primary);
+      font-size: 23px;
+    }
+
+    .upgrade-option b {
+      font-size: 13px;
+    }
+
+    .upgrade-option small {
+      max-width: 160px;
+      margin-top: 5px;
+      color: var(--color-muted);
+      font-size: 11px;
+      line-height: 1.4;
+    }
+
+    .gameover-mark {
+      background: var(--color-accent);
+      color: var(--color-primary-contrast);
+      font-size: 34px;
+    }
+
+    .final-stats {
+      display: flex;
+      justify-content: center;
+      gap: 38px;
+      margin: 28px 0;
+    }
+
+    .final-stats div {
+      display: grid;
+      gap: 3px;
+    }
+
+    .final-stats b {
+      font-family: var(--font-heading);
+      font-size: 24px;
+    }
+
+    .final-stats span {
+      color: var(--color-muted);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: .12em;
+    }
+
+    .restart-button {
+      width: auto;
+      min-width: 220px;
+      gap: 30px;
+    }
+
+    .site-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      margin-top: 48px;
+      border-top: 1px solid var(--color-line);
+      padding: 17px 0 3px;
+      color: var(--color-muted);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: .07em;
+    }
+
+    .footer-separator {
+      padding: 0 7px;
+      color: var(--color-primary);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 800px) {
+      .starter-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .battle-lower {
+        grid-template-columns: 1fr;
+      }
+
+      .battle-message {
+        min-height: auto;
+        margin: 10px 0;
+      }
+
+      .run-stats {
+        padding-top: 10px;
+      }
+
+      .arena {
+        min-height: 310px;
+        padding: 17px;
+      }
+
+      .combatant-info {
+        width: 100%;
+      }
+
+      .pokemon-stage {
+        min-height: 150px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .app-shell {
+        padding: 16px;
+      }
+
+      .brand-mark {
+        width: 37px;
+        height: 37px;
+      }
+
+      .brand span.block:first-child {
+        font-size: 15px;
+      }
+
+      .run-badge {
+        padding: 8px 10px;
+      }
+
+      .intro-grid {
+        align-items: flex-start;
+        padding: 30px 0 37px;
+      }
+
+      .starter-aside {
+        display: none;
+      }
+
+      .hero-title {
+        font-size: 56px;
+      }
+
+      .section-heading {
+        align-items: flex-start;
+      }
+
+      .api-note {
+        gap: 6px;
+        font-size: 8px;
+      }
+
+      .starter-grid {
+        gap: 9px;
+      }
+
+      .starter-card {
+        min-height: 235px;
+        padding: 11px;
+      }
+
+      .starter-art {
+        height: 126px;
+      }
+
+      .starter-art img {
+        width: 126px;
+        height: 126px;
+      }
+
+      .starter-name {
+        font-size: 16px;
+      }
+
+      .battle-topline {
+        margin-top: 16px;
+      }
+
+      .arena {
+        min-height: 310px;
+        grid-template-columns: minmax(0, 1fr) 33px minmax(0, 1fr);
+        gap: 3px;
+        padding: 15px 10px;
+      }
+
+      .name-row {
+        flex-wrap: wrap;
+        gap: 5px;
+      }
+
+      .name-row h2 {
+        font-size: 16px;
+      }
+
+      .level-tag {
+        padding: 3px 5px;
+        font-size: 8px;
+      }
+
+      .health-wrap {
+        margin-top: 11px;
+      }
+
+      .health-meta {
+        font-size: 8px;
+      }
+
+      .pokemon-stage {
+        min-height: 138px;
+      }
+
+      .pokemon-sprite {
+        width: 130px;
+        height: 130px;
+      }
+
+      .stage-shadow {
+        width: 85px;
+      }
+
+      .versus {
+        width: 30px;
+        height: 30px;
+        font-size: 8px;
+      }
+
+      .battle-log-panel,
+      .action-panel {
+        padding: 14px;
+      }
+
+      .action-grid {
+        gap: 7px;
+      }
+
+      .action-button {
+        gap: 7px;
+        padding: 7px;
+      }
+
+      .action-icon {
+        width: 27px;
+        height: 27px;
+        flex-basis: 27px;
+        font-size: 15px;
+      }
+
+      .action-button b {
+        font-size: 10px;
+      }
+
+      .action-button small {
+        font-size: 8px;
+      }
+
+      .action-button kbd {
+        display: none;
+      }
+
+      .upgrade-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .upgrade-option {
+        min-height: 110px;
+      }
+
+      .site-footer {
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 35px;
+        font-size: 8px;
+      }
+
+      .final-stats {
+        gap: 20px;
+      }
+
+      .final-stats b {
+        font-size: 20px;
+      }
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <div class="app-shell mx-auto min-h-screen max-w-7xl px-4 py-5 sm:px-8 sm:py-8">
+    <header class="mb-8 flex items-center justify-between gap-4">
+      <a href="/" class="brand flex items-center gap-3" aria-label="Wildbound home">
+        <span class="brand-mark">W</span>
+        <span>
+          <span class="block font-display text-lg font-black tracking-[0.12em]">WILDBOUND</span>
+          <span class="block text-[10px] font-bold tracking-[0.22em] text-[var(--color-muted)]">A POCKET-SIZED ROGUELIKE</span>
+        </span>
+      </a>
+      <div class="run-badge"><span class="live-dot"></span> RUN <span id="header-run">01</span></div>
+    </header>
+
+    <main>
+      <section id="loading-screen" class="screen-card loading-card">
+        <div class="loader-ball"><span></span></div>
+        <p class="eyebrow">TUNING YOUR POKÉDEX</p>
+        <h1 class="font-display text-3xl font-black">Calling the wild…</h1>
+        <p class="mt-2 text-sm text-[var(--color-muted)]">Fetching your first possible partners from PokéAPI.</p>
+      </section>
+
+      <section id="starter-screen" class="hidden">
+        <div class="intro-grid">
+          <div>
+            <p class="eyebrow"><span class="eyebrow-line"></span> THE WILDS ARE WAITING</p>
+            <h1 class="hero-title font-display">Pick your<br><span>first partner.</span></h1>
+            <p class="max-w-lg text-base leading-7 text-[var(--color-muted)]">Choose a starter, then see how far your team can make it. Every run brings a new wild encounter.</p>
+          </div>
+          <div class="starter-aside">
+            <span class="aside-icon">✦</span>
+            <p>ONE PARTNER.<br>ENDLESS ENCOUNTERS.</p>
+            <span class="aside-sub">Your adventure starts here</span>
+          </div>
+        </div>
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">CHOOSE YOUR STARTER</span>
+            <h2 class="font-display text-xl font-bold">Who’s coming with you?</h2>
+          </div>
+          <span class="api-note"><span class="live-dot"></span> LIVE POKÉAPI DATA</span>
+        </div>
+        <div id="starter-grid" class="starter-grid"></div>
+        <p id="starter-error" class="hidden mt-5 text-center text-sm text-[var(--color-accent)]">Couldn’t reach PokéAPI. Check your connection, then refresh to try again.</p>
+      </section>
+
+      <section id="battle-screen" class="hidden">
+        <div class="battle-topline">
+          <div class="eyebrow"><span class="eyebrow-line"></span> THE WILD FRONTIER</div>
+          <div class="round-pill">ENCOUNTER <span id="round-number">01</span></div>
+        </div>
+        <div class="arena">
+          <div class="arena-glow"></div>
+          <div class="combatant player-combatant">
+            <div class="combatant-info">
+              <div class="name-row">
+                <h2 id="player-name" class="font-display">—</h2>
+                <span id="player-level" class="level-tag">LV. 5</span>
+              </div>
+              <div id="player-types" class="type-row"></div>
+              <div class="health-wrap">
+                <div class="health-meta"><span>HP</span><span id="player-hp-label">— / —</span></div>
+                <div class="health-track">
+                  <div id="player-hp-bar" class="health-fill"></div>
+                </div>
+              </div>
+            </div>
+            <div class="pokemon-stage player-stage">
+              <div class="stage-shadow"></div>
+              <img id="player-sprite" alt="Your Pokémon" class="pokemon-sprite">
+            </div>
+          </div>
+          <div class="versus">VS</div>
+          <div class="combatant enemy-combatant">
+            <div class="combatant-info">
+              <div class="name-row">
+                <h2 id="enemy-name" class="font-display">—</h2>
+                <span id="enemy-level" class="level-tag enemy-level">LV. 4</span>
+              </div>
+              <div id="enemy-types" class="type-row"></div>
+              <div class="health-wrap">
+                <div class="health-meta"><span>HP</span><span id="enemy-hp-label">— / —</span></div>
+                <div class="health-track">
+                  <div id="enemy-hp-bar" class="health-fill enemy-fill"></div>
+                </div>
+              </div>
+            </div>
+            <div class="pokemon-stage enemy-stage">
+              <div class="stage-shadow"></div>
+              <img id="enemy-sprite" alt="Wild Pokémon" class="pokemon-sprite enemy-sprite">
+            </div>
+          </div>
+          <div id="damage-float" class="damage-float" aria-live="polite"></div>
+        </div>
+
+        <div class="battle-lower">
+          <section class="battle-log-panel">
+            <div class="panel-label"><span class="status-dot"></span> FIELD NOTES</div>
+            <p id="battle-message" class="battle-message" aria-live="polite">A wild Pokémon appeared!</p>
+            <div class="run-stats">
+              <span>✦ <b id="xp-value">0</b> XP</span>
+              <span>◉ <b id="wins-value">0</b> WINS</span>
+              <span>▣ <b id="potions-value">2</b> POTIONS</span>
+            </div>
+          </section>
+          <section class="action-panel">
+            <div class="panel-label">YOUR TURN <span id="turn-hint" class="turn-hint">CHOOSE AN ACTION</span></div>
+            <div id="action-buttons" class="action-grid">
+              <button class="action-button primary-action" data-action="strike"><span class="action-icon">✦</span><span><b>Quick Strike</b><small>Reliable damage</small></span><kbd>1</kbd></button>
+              <button class="action-button" data-action="special"><span class="action-icon special-icon">ϟ</span><span><b>Wild Surge</b><small>Big hit · risky</small></span><kbd>2</kbd></button>
+              <button class="action-button" data-action="guard"><span class="action-icon guard-icon">⬡</span><span><b>Brace</b><small>Reduce next hit</small></span><kbd>3</kbd></button>
+              <button class="action-button potion-action" data-action="potion"><span class="action-icon potion-icon">＋</span><span><b>Use Potion</b><small id="potion-description">Restore 25 HP</small></span><kbd>4</kbd></button>
+            </div>
+            <button id="next-button" class="next-button hidden">Next encounter <span>→</span></button>
+          </section>
+        </div>
+      </section>
+
+      <section id="upgrade-screen" class="hidden screen-card upgrade-card">
+        <div class="reward-spark">✦</div>
+        <p class="eyebrow">A MOMENT TO CATCH YOUR BREATH</p>
+        <h2 class="font-display text-3xl font-black">Choose a field perk.</h2>
+        <p class="mt-2 text-sm text-[var(--color-muted)]">A little boost for the road ahead.</p>
+        <div class="upgrade-grid">
+          <button class="upgrade-option" data-upgrade="heal"><span class="upgrade-icon">♥</span><b>Camp Rest</b><small>Restore 35% of your max HP.</small></button>
+          <button class="upgrade-option" data-upgrade="power"><span class="upgrade-icon">⚔</span><b>Sharpen Up</b><small>Increase your attack power by 15%.</small></button>
+          <button class="upgrade-option" data-upgrade="potion"><span class="upgrade-icon">✚</span><b>Stock Up</b><small>Get one extra potion.</small></button>
+        </div>
+      </section>
+
+      <section id="gameover-screen" class="hidden screen-card gameover-card">
+        <div class="gameover-mark">×</div>
+        <p class="eyebrow">YOUR RUN HAS ENDED</p>
+        <h2 class="font-display text-4xl font-black">The wilds win this time.</h2>
+        <p class="mt-3 text-[var(--color-muted)]">Every great trainer starts somewhere. Ready to try again?</p>
+        <div class="final-stats">
+          <div><b id="final-wins">0</b><span>WINS</span></div>
+          <div><b id="final-round">1</b><span>ENCOUNTERS</span></div>
+          <div><b id="final-level">5</b><span>FINAL LEVEL</span></div>
+        </div>
+        <button id="restart-button" class="restart-button">Start a new run <span>→</span></button>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>WILDBOUND <span class="footer-separator">/</span> MADE FOR THE LONG ROAD</span>
+      <span>Pokémon data provided by PokéAPI</span>
+    </footer>
+  </div>
+
+  <script>
+    const API_ROOT = 'https://pokeapi.co/api/v2/pokemon/';
+    const STARTER_IDS = [1, 4, 7, 25];
+
+    const state = {
+      starterOptions: [],
+      player: null,
+      enemy: null,
+      round: 1,
+      wins: 0,
+      xp: 0,
+      level: 5,
+      potions: 2,
+      powerBoost: 1,
+      guarding: false,
+      busy: false,
+      waitingForNext: false,
+      upgradesPending: false
+    };
+
+    const screens = {
+      loading: document.querySelector('#loading-screen'),
+      starter: document.querySelector('#starter-screen'),
+      battle: document.querySelector('#battle-screen'),
+      upgrade: document.querySelector('#upgrade-screen'),
+      gameover: document.querySelector('#gameover-screen')
+    };
+
+    const $ = (selector) => document.querySelector(selector);
+
+    async function fetchPokemon(id) {
+      const response = await fetch(`${API_ROOT}${id}`);
+      if (!response.ok) throw new Error('PokéAPI request failed');
+      return response.json();
+    }
+
+    function showScreen(name) {
+      Object.values(screens).forEach((screen) => screen.classList.add('hidden'));
+      screens[name].classList.remove('hidden');
+    }
+
+    function pokemonArtwork(pokemon) {
+      return pokemon.sprites?.other?.['official-artwork']?.front_default ||
+        pokemon.sprites?.front_default ||
+        '';
+    }
+
+    function typeChips(pokemon) {
+      return pokemon.types.map(({
+        type
+      }) => {
+        const chip = document.createElement('span');
+        chip.className = `type-chip type-${type.name}`;
+        chip.textContent = type.name;
+        return chip;
+      });
+    }
+
+    function baseStat(pokemon, statName) {
+      return pokemon.stats.find(({
+        stat
+      }) => stat.name === statName)?.base_stat || 40;
+    }
+
+    function makeFighter(pokemon, level) {
+      const baseHp = baseStat(pokemon, 'hp');
+      const maxHp = Math.round(baseHp + level * 4 + 15);
+      return {
+        data: pokemon,
+        name: pokemon.name,
+        level,
+        maxHp,
+        hp: maxHp,
+        attack: baseStat(pokemon, 'attack') + level * 2,
+        defense: baseStat(pokemon, 'defense') + level,
+        types: pokemon.types.map(({
+          type
+        }) => type.name)
+      };
+    }
+
+    function renderStarterCards() {
+      const grid = $('#starter-grid');
+      grid.replaceChildren();
+
+      state.starterOptions.forEach((pokemon) => {
+        const card = document.createElement('button');
+        card.className = 'starter-card';
+        card.type = 'button';
+        card.setAttribute('aria-label', `Choose ${pokemon.name} as your starter`);
+
+        const number = document.createElement('span');
+        number.className = 'starter-number';
+        number.textContent = `NO. ${String(pokemon.id).padStart(3, '0')}`;
+
+        const artwork = document.createElement('span');
+        artwork.className = 'starter-art';
+        const image = document.createElement('img');
+        image.src = pokemonArtwork(pokemon);
+        image.alt = pokemon.name;
+        image.loading = 'lazy';
+        artwork.append(image);
+
+        const bottom = document.createElement('span');
+        bottom.className = 'starter-card-bottom';
+        const details = document.createElement('span');
+        const name = document.createElement('span');
+        name.className = 'starter-name block';
+        name.textContent = pokemon.name;
+        const types = document.createElement('span');
+        types.className = 'type-row';
+        typeChips(pokemon).forEach((chip) => types.append(chip));
+        details.append(name, types);
+
+        const arrow = document.createElement('span');
+        arrow.className = 'select-arrow';
+        arrow.setAttribute('aria-hidden', 'true');
+        arrow.textContent = '↗';
+        bottom.append(details, arrow);
+        card.append(number, artwork, bottom);
+        card.addEventListener('click', () => chooseStarter(pokemon));
+        grid.append(card);
+      });
+    }
+
+    async function loadStarters() {
+      try {
+        state.starterOptions = await Promise.all(STARTER_IDS.map(fetchPokemon));
+        renderStarterCards();
+        $('#starter-error').classList.add('hidden');
+        showScreen('starter');
+      } catch (error) {
+        $('#starter-error').classList.remove('hidden');
+        showScreen('starter');
+      }
+    }
+
+    async function chooseStarter(pokemon) {
+      state.player = makeFighter(pokemon, state.level);
+      showScreen('battle');
+      updateHeader();
+      renderBattle();
+      await loadEncounter();
+    }
+
+    function updateHeader() {
+      $('#header-run').textContent = String(Math.max(1, state.round)).padStart(2, '0');
+    }
+
+    function renderBattle() {
+      if (!state.player) return;
+      const player = state.player;
+      $('#player-name').textContent = player.name;
+      $('#player-level').textContent = `LV. ${player.level}`;
+      $('#player-sprite').src = pokemonArtwork(player.data);
+      $('#player-sprite').alt = player.name;
+      $('#player-types').replaceChildren(...typeChips(player.data));
+      $('#player-hp-label').textContent = `${Math.max(0, player.hp)} / ${player.maxHp}`;
+      $('#player-hp-bar').style.width = `${Math.max(0, (player.hp / player.maxHp) * 100)}%`;
+      $('#round-number').textContent = String(state.round).padStart(2, '0');
+      $('#xp-value').textContent = state.xp;
+      $('#wins-value').textContent = state.wins;
+      $('#potions-value').textContent = state.potions;
+      $('#potion-description').textContent = `Restore ${Math.min(25, player.maxHp)} HP`;
+      updateHeader();
+
+      if (state.enemy) {
+        const enemy = state.enemy;
+        $('#enemy-name').textContent = enemy.name;
+        $('#enemy-level').textContent = `LV. ${enemy.level}`;
+        $('#enemy-sprite').src = pokemonArtwork(enemy.data);
+        $('#enemy-sprite').alt = `Wild ${enemy.name}`;
+        $('#enemy-types').replaceChildren(...typeChips(enemy.data));
+        $('#enemy-hp-label').textContent = `${Math.max(0, enemy.hp)} / ${enemy.maxHp}`;
+        $('#enemy-hp-bar').style.width = `${Math.max(0, (enemy.hp / enemy.maxHp) * 100)}%`;
+      }
+      updateActionButtons();
+    }
+
+    async function loadEncounter() {
+      state.busy = true;
+      state.waitingForNext = false;
+      state.enemy = null;
+      $('#battle-message').textContent = 'Searching the tall grass…';
+      $('#next-button').classList.add('hidden');
+      updateActionButtons();
+
+      try {
+        let id = Math.floor(Math.random() * 151) + 1;
+        while (state.player && id === state.player.data.id) {
+          id = Math.floor(Math.random() * 151) + 1;
+        }
+        const pokemon = await fetchPokemon(id);
+        const levelOffset = Math.floor(Math.random() * 3) - 1;
+        const enemyLevel = Math.max(2, state.level + levelOffset + Math.floor(state.wins / 4));
+        state.enemy = makeFighter(pokemon, enemyLevel);
+        state.busy = false;
+        $('#battle-message').textContent = `A wild ${state.enemy.name} appeared! What will ${state.player.name} do?`;
+        renderBattle();
+      } catch (error) {
+        state.busy = false;
+        state.waitingForNext = true;
+        $('#battle-message').textContent = 'The wild signal faded. Check your connection and try again.';
+        $('#next-button').innerHTML = 'Retry encounter <span>↻</span>';
+        $('#next-button').classList.remove('hidden');
+        updateActionButtons();
+      }
+    }
+
+    function updateActionButtons() {
+      const buttons = document.querySelectorAll('.action-button');
+      buttons.forEach((button) => {
+        const action = button.dataset.action;
+        const unavailable = state.busy || state.waitingForNext || !state.enemy || state.enemy.hp <= 0;
+        button.disabled = unavailable || (action === 'potion' && (state.potions <= 0 || state.player.hp >= state.player.maxHp));
+      });
+      $('#turn-hint').textContent = state.waitingForNext ? 'AWAITING SIGNAL' : state.busy ? 'IN PROGRESS' : 'CHOOSE AN ACTION';
+    }
+
+    function typeMultiplier(attacker, defender) {
+      const advantages = {
+        fire: ['grass', 'ice', 'bug', 'steel'],
+        water: ['fire', 'ground', 'rock'],
+        grass: ['water', 'ground', 'rock'],
+        electric: ['water', 'flying'],
+        ice: ['grass', 'ground', 'flying', 'dragon'],
+        fighting: ['normal', 'ice', 'rock', 'dark', 'steel'],
+        ground: ['fire', 'electric', 'poison', 'rock', 'steel'],
+        flying: ['grass', 'fighting', 'bug'],
+        psychic: ['fighting', 'poison'],
+        bug: ['grass', 'psychic', 'dark'],
+        rock: ['fire', 'ice', 'flying', 'bug'],
+        ghost: ['psychic', 'ghost'],
+        dragon: ['dragon'],
+        dark: ['psychic', 'ghost'],
+        steel: ['ice', 'rock', 'fairy'],
+        poison: ['grass', 'fairy']
+      };
+      const attackerTypes = attacker.types;
+      return defender.types.some((type) => attackerTypes.some((attackingType) => advantages[attackingType]?.includes(type))) ? 1.35 : 1;
+    }
+
+    function showDamage(amount) {
+      const float = $('#damage-float');
+      float.textContent = `−${amount}`;
+      float.classList.remove('pop');
+      void float.offsetWidth;
+      float.classList.add('pop');
+    }
+
+    function attackDamage(power, variance = 0.9) {
+      const player = state.player;
+      const enemy = state.enemy;
+      const multiplier = typeMultiplier(player, enemy);
+      const raw = (player.attack / Math.max(20, enemy.defense)) * player.level * 1.6 * power * state.powerBoost;
+      const damage = Math.max(3, Math.round(raw * (variance + Math.random() * (1 - variance)) * multiplier));
+      enemy.hp = Math.max(0, enemy.hp - damage);
+      showDamage(damage);
+      return {
+        damage,
+        multiplier
+      };
+    }
+
+    async function takeAction(action) {
+      if (state.busy || !state.enemy || state.enemy.hp <= 0) return;
+      state.busy = true;
+      updateActionButtons();
+      const player = state.player;
+      let message = '';
+
+      if (action === 'strike') {
+        const result = attackDamage(0.62, 0.87);
+        message = `${player.name} used Quick Strike for ${result.damage} damage${result.multiplier > 1 ? ' — it’s super effective!' : '.'}`;
+      } else if (action === 'special') {
+        if (Math.random() < 0.18) {
+          message = `${player.name}'s Wild Surge missed!`;
+        } else {
+          const result = attackDamage(1.35, 0.7);
+          message = `${player.name} unleashed Wild Surge for ${result.damage} damage${result.multiplier > 1 ? ' — super effective!' : '!'}`;
+        }
+      } else if (action === 'guard') {
+        state.guarding = true;
+        message = `${player.name} braced for the next attack.`;
+      } else if (action === 'potion') {
+        const restored = Math.min(25, player.maxHp - player.hp);
+        player.hp += restored;
+        state.potions -= 1;
+        message = `Potion restored ${restored} HP to ${player.name}.`;
+      }
+
+      $('#battle-message').textContent = message;
+      renderBattle();
+      await delay(650);
+
+      if (state.enemy.hp <= 0) {
+        winEncounter();
+        return;
+      }
+      enemyTurn();
+    }
+
+    function enemyTurn() {
+      const player = state.player;
+      const enemy = state.enemy;
+      const multiplier = typeMultiplier(enemy, player);
+      const raw = (enemy.attack / Math.max(20, player.defense)) * enemy.level * 1.3;
+      let damage = Math.max(2, Math.round(raw * (0.8 + Math.random() * 0.45) * multiplier));
+      if (state.guarding) {
+        damage = Math.max(1, Math.round(damage * 0.4));
+        state.guarding = false;
+      }
+      player.hp = Math.max(0, player.hp - damage);
+      $('#battle-message').textContent = `${enemy.name} counterattacked for ${damage} damage${multiplier > 1 ? ' — a strong hit!' : '.'}`;
+      showDamage(damage);
+      renderBattle();
+
+      if (player.hp <= 0) {
+        endRun();
+        return;
+      }
+      state.busy = false;
+      updateActionButtons();
+    }
+
+    function winEncounter() {
+      state.busy = false;
+      state.wins += 1;
+      state.xp += 20 + state.enemy.level * 2;
+      state.player.hp = Math.min(state.player.maxHp, state.player.hp + Math.round(state.player.maxHp * 0.08));
+
+      const previousLevel = state.level;
+      state.level = 5 + Math.floor(state.xp / 55);
+      if (state.level > previousLevel) {
+        const increase = state.level - previousLevel;
+        state.player.level = state.level;
+        state.player.maxHp += 12 * increase;
+        state.player.hp = Math.min(state.player.maxHp, state.player.hp + 12 * increase);
+        state.player.attack += 5 * increase;
+        state.player.defense += 3 * increase;
+      }
+
+      $('#battle-message').textContent = `${state.enemy.name} was defeated! ${state.player.name} earned ${20 + state.enemy.level * 2} XP.`;
+      state.waitingForNext = true;
+      renderBattle();
+      $('#next-button').innerHTML = 'Next encounter <span>→</span>';
+      $('#next-button').classList.remove('hidden');
+      $('#turn-hint').textContent = state.wins % 3 === 0 ? 'PERK UNLOCKED' : 'ENCOUNTER CLEARED';
+    }
+
+    function endRun() {
+      state.busy = false;
+      $('#final-wins').textContent = state.wins;
+      $('#final-round').textContent = state.round;
+      $('#final-level').textContent = state.level;
+      showScreen('gameover');
+    }
+
+    function nextEncounter() {
+      if (!state.waitingForNext) return;
+      if (state.enemy === null) {
+        loadEncounter();
+        return;
+      }
+      if (state.wins > 0 && state.wins % 3 === 0 && !state.upgradesPending) {
+        state.upgradesPending = true;
+        showScreen('upgrade');
+        return;
+      }
+      state.round += 1;
+      state.waitingForNext = false;
+      showScreen('battle');
+      loadEncounter();
+    }
+
+    function applyUpgrade(upgrade) {
+      if (upgrade === 'heal') {
+        const amount = Math.round(state.player.maxHp * 0.35);
+        state.player.hp = Math.min(state.player.maxHp, state.player.hp + amount);
+      } else if (upgrade === 'power') {
+        state.powerBoost += 0.15;
+      } else if (upgrade === 'potion') {
+        state.potions += 1;
+      }
+      state.upgradesPending = false;
+      state.round += 1;
+      showScreen('battle');
+      loadEncounter();
+    }
+
+    function startNewRun() {
+      state.player = null;
+      state.enemy = null;
+      state.round = 1;
+      state.wins = 0;
+      state.xp = 0;
+      state.level = 5;
+      state.potions = 2;
+      state.powerBoost = 1;
+      state.guarding = false;
+      state.busy = false;
+      state.waitingForNext = false;
+      state.upgradesPending = false;
+      updateHeader();
+      showScreen('starter');
+    }
+
+    function delay(milliseconds) {
+      return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+    }
+
+    document.querySelectorAll('.action-button').forEach((button) => {
+      button.addEventListener('click', () => takeAction(button.dataset.action));
+    });
+
+    $('#next-button').addEventListener('click', nextEncounter);
+    $('#restart-button').addEventListener('click', startNewRun);
+    document.querySelectorAll('.upgrade-option').forEach((button) => {
+      button.addEventListener('click', () => applyUpgrade(button.dataset.upgrade));
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.altKey || event.ctrlKey || event.metaKey) return;
+      if (screens.battle.classList.contains('hidden')) return;
+      const action = {
+        '1': 'strike',
+        '2': 'special',
+        '3': 'guard',
+        '4': 'potion'
+      } [event.key];
+      if (action) takeAction(action);
+    });
+
+    loadStarters();
+
+  </script>
+</body>
+
+</html>
