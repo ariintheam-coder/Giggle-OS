@@ -3,58 +3,113 @@
 @config "../tailwind.config.cjs";
 
 @theme {
-  --font-display: "Bricolage Grotesque", Georgia, serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
-  --font-sans: "Figtree", system-ui, sans-serif;
+  --font-display: "Segoe UI", "Trebuchet MS", "Arial", sans-serif;
+  --font-mono: "Consolas", "Courier New", monospace;
+  --font-sans: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
 }
 
 :root {
-  --c-base: #14110f; --c-panel: #1f1a17; --c-panel2: #2a231e; --c-panel3: #332a24; --c-raised: #3a312a;
-  --c-warn: #3a2a1a; --c-line: #3a312a; --c-line2: #4a3f36;
-  --c-fg: #f5efe6; --c-fg2: #cfc5b8; --c-fg3: #b9ad9f; --c-onaccent: #14110f;
-  --c-accent: #ffb347; --c-accent2: #ffc56e; --c-accenttext: #ffb347; --c-accentline: #ffb347;
-  --c-error: #ffb3a7; --c-ok: #8fd694;
-  color-scheme: dark;
-}
-[data-theme="light"] {
-  --c-base: #faf6ef; --c-panel: #ffffff; --c-panel2: #f3ede2; --c-panel3: #ece4d6; --c-raised: #e8dfcf;
-  --c-warn: #fde9c8; --c-line: #ddd2bf; --c-line2: #c9bba3;
-  --c-fg: #1c1814; --c-fg2: #4a4036; --c-fg3: #5a4f44; --c-onaccent: #14110f;
-  --c-accent: #ffb347; --c-accent2: #ffc56e; --c-accenttext: #8a4b00; --c-accentline: #b35c00;
-  --c-error: #a3261a; --c-ok: #1d6b2a;
+  --c-base: #dfeaf6;
+  --c-panel: #f3f3f3;
+  --c-panel2: #e7e7e7;
+  --c-panel3: #d9d9d9;
+  --c-raised: #cfd8e4;
+  --c-warn: #fff4b3;
+  --c-line: #b7c4d6;
+  --c-line2: #8ea4bd;
+  --c-fg: #1a1d23;
+  --c-fg2: #495867;
+  --c-fg3: #637383;
+  --c-onaccent: #ffffff;
+  --c-accent: #0f6cbd;
+  --c-accent2: #3e9df8;
+  --c-accenttext: #0e4ea8;
+  --c-accentline: #0b5eb5;
+  --c-error: #a3261a;
+  --c-ok: #0e6a39;
   color-scheme: light;
 }
 
-@theme inline {
-  --color-gg-base: var(--c-base); --color-gg-panel: var(--c-panel); --color-gg-panel2: var(--c-panel2);
-  --color-gg-panel3: var(--c-panel3); --color-gg-raised: var(--c-raised); --color-gg-warn: var(--c-warn);
-  --color-gg-line: var(--c-line); --color-gg-line2: var(--c-line2);
-  --color-gg-fg: var(--c-fg); --color-gg-fg2: var(--c-fg2); --color-gg-fg3: var(--c-fg3); --color-gg-onaccent: var(--c-onaccent);
-  --color-gg-accent: var(--c-accent); --color-gg-accent2: var(--c-accent2); --color-gg-accent-text: var(--c-accenttext);
-  --color-gg-accentline: var(--c-accentline); --color-gg-error: var(--c-error); --color-gg-ok: var(--c-ok);
+[data-theme="dark"] {
+  --c-base: #1a1d23;
+  --c-panel: #2b3139;
+  --c-panel2: #333b46;
+  --c-panel3: #3c4653;
+  --c-raised: #465363;
+  --c-warn: #3a2a1a;
+  --c-line: #4d5b6e;
+  --c-line2: #5d6b7d;
+  --c-fg: #edf3f9;
+  --c-fg2: #cbd6e2;
+  --c-fg3: #a9b8c8;
+  --c-onaccent: #ffffff;
+  --c-accent: #4ea1ff;
+  --c-accent2: #8fc2ff;
+  --c-accenttext: #9ecbff;
+  --c-accentline: #74b4ff;
+  --c-error: #ffb3a7;
+  --c-ok: #8fd694;
+  color-scheme: dark;
 }
 
-html { background: var(--c-base); }
+@theme inline {
+  --color-gg-base: var(--c-base);
+  --color-gg-panel: var(--c-panel);
+  --color-gg-panel2: var(--c-panel2);
+  --color-gg-panel3: var(--c-panel3);
+  --color-gg-raised: var(--c-raised);
+  --color-gg-warn: var(--c-warn);
+  --color-gg-line: var(--c-line);
+  --color-gg-line2: var(--c-line2);
+  --color-gg-fg: var(--c-fg);
+  --color-gg-fg2: var(--c-fg2);
+  --color-gg-fg3: var(--c-fg3);
+  --color-gg-onaccent: var(--c-onaccent);
+  --color-gg-accent: var(--c-accent);
+  --color-gg-accent2: var(--c-accent2);
+  --color-gg-accent-text: var(--c-accenttext);
+  --color-gg-accentline: var(--c-accentline);
+  --color-gg-error: var(--c-error);
+  --color-gg-ok: var(--c-ok);
+}
+
+html {
+  background: var(--c-base);
+}
 
 body {
   font-family: var(--font-sans);
   background: var(--c-base);
   margin: 0;
+  color: var(--c-fg);
 }
 
-.giggle-logo { animation: giggle-wobble 2.4s ease-in-out infinite; transform-origin: 50% 60%; }
-.giggle-eyes { animation: giggle-blink 4s infinite; transform-origin: 16px 11.5px; }
-.giggle-mouth { animation: giggle-laugh 1.2s ease-in-out infinite; transform-origin: 16px 17px; }
+.giggle-logo {
+  animation: giggle-wobble 2.4s ease-in-out infinite;
+  transform-origin: 50% 60%;
+}
+
+.giggle-eyes {
+  animation: giggle-blink 4s infinite;
+  transform-origin: 16px 11.5px;
+}
+
+.giggle-mouth {
+  animation: giggle-laugh 1.2s ease-in-out infinite;
+  transform-origin: 16px 17px;
+}
 
 @keyframes giggle-wobble {
   0%, 100% { transform: rotate(0deg) translateY(0); }
   25% { transform: rotate(-6deg) translateY(-2px); }
   75% { transform: rotate(6deg) translateY(-2px); }
 }
+
 @keyframes giggle-blink {
   0%, 92%, 100% { transform: scaleY(1); }
   95% { transform: scaleY(0.1); }
 }
+
 @keyframes giggle-laugh {
   0%, 100% { transform: scale(1, 1); }
   50% { transform: scale(1.04, 0.88); }
