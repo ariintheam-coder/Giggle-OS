@@ -1,0 +1,3436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Haven v1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+   <style>
+    /* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body */
+body {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a0a0a 50%, #0d0d0d 100%);
+    color: #e2e8f0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    padding: 1rem;
+}
+body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+        radial-gradient(circle at 20% 50%, rgba(148, 163, 184, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(203, 213, 225, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+    animation: ambientShift 20s ease-in-out infinite;
+}
+@keyframes ambientShift {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+/* Containers */
+.game-container {
+    background: linear-gradient(135deg, rgba(15, 10, 5, 0.95) 0%, rgba(20, 12, 8, 0.95) 100%);
+    border: 2px solid #64748b;
+    border-radius: 12px;
+    box-shadow: 0 0 40px rgba(148, 163, 184, 0.5), inset 0 0 20px rgba(203, 213, 225, 0.05);
+    position: relative;
+    z-index: 1;
+    max-width: 112rem; /* max-w-7xl */
+    margin: 0 auto;
+    display: flex;
+    min-height: 80vh;
+    overflow: hidden;
+    border-radius: 0.75rem;
+}
+
+/* Sidebar */
+nav {
+    background: linear-gradient(180deg, rgba(35, 20, 10, 0.95) 0%, rgba(45, 25, 15, 0.95) 100%);
+    border-right: 2px solid #64748b;
+    width: 15rem; /* w-60 */
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1rem;
+    color: #e2e8f0; /* yellow-400 */
+    font-weight: 600;
+    font-size: 0.875rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.6);
+}
+nav h1 {
+    font-size: 1.875rem;
+    font-weight: 900;
+    margin-bottom: 1rem;
+    color: #e2e8f0;
+    text-shadow: 0 0 10px #e2e8f0;
+    user-select: none;
+}
+
+/* Sidebar tab buttons */
+.tab-button.sidebar-tab {
+    background: linear-gradient(to bottom, #6b4a21, #8b661f);
+    border: 2px solid #cbd5e1;
+    border-radius: 0.375rem;
+    padding: 0.75rem 1rem;
+    color: #f8fafc;
+    font-weight: 600;
+    transition: background 0.3s ease;
+    text-shadow: 0 0 3px #cbd5e1;
+    box-shadow: 0 0 10px #94a3b8;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+}
+.tab-button.sidebar-tab:hover {
+    background: linear-gradient(to bottom, #8b661f, #cbd5e1);
+    color: #1a1a1a;
+    text-shadow: 0 0 6px #e2e8f0;
+    box-shadow: 0 0 20px #e2e8f0;
+}
+.tab-button.sidebar-tab.active {
+    background: linear-gradient(to bottom, #f8fafc, #94a3b8);
+    color: #1a1a1a;
+    font-weight: 900;
+    box-shadow: 0 0 25px #f8fafc, inset 0 0 10px #f8fafc;
+}
+
+/* Logout button in sidebar */
+#logoutGameBtn {
+    margin-top: auto;
+    width: 100%;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(to bottom, #ef4444, #b91c1c);
+    border: 2px solid #f87171;
+    border-radius: 0.375rem;
+    color: #fafafa;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(244, 67, 54, 0.3);
+    transition: background 0.3s ease;
+}
+#logoutGameBtn:hover {
+    background: linear-gradient(to bottom, #dc2626, #7f1d1d);
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.5);
+}
+
+/* Content area */
+.flex-1 {
+    flex-grow: 1;
+    padding: 1.5rem;
+    overflow: auto;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Scrollbar custom */
+.scrollbar-custom::-webkit-scrollbar {
+    width: 8px;
+}
+.scrollbar-custom::-webkit-scrollbar-track {
+    background: rgba(20, 15, 10, 0.5);
+    border-radius: 10px;
+}
+.scrollbar-custom::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, #64748b, #475569);
+    border-radius: 10px;
+}
+.scrollbar-custom::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, #64748b, #64748b);
+}
+
+/* Top Bar */
+.top-bar {
+    background: linear-gradient(135deg, rgba(70, 45, 25, 0.8), rgba(50, 35, 20, 0.8));
+    border: 2px solid #64748b;
+    border-radius: 0.625rem;
+    padding: 1.125rem;
+    box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+.top-bar p {
+    color: #e2e8f0;
+    font-weight: 700;
+}
+#currentTime {
+    font-family: monospace;
+    font-weight: 600;
+    color: #d1d5db;
+}
+
+/* Grid utilities */
+.grid {
+    display: grid;
+    gap: 0.75rem;
+}
+.grid-cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.gap-3 {
+    gap: 0.75rem;
+}
+.gap-4 {
+    gap: 1rem;
+}
+.gap-6 {
+    gap: 1.5rem;
+}
+
+/* Text utilities */
+.text-xs {
+    font-size: 0.75rem;
+}
+.text-sm {
+    font-size: 0.875rem;
+}
+.text-lg {
+    font-size: 1.125rem;
+}
+.text-xl {
+    font-size: 1.25rem;
+}
+.font-bold {
+    font-weight: 700;
+}
+.font-black {
+    font-weight: 900;
+}
+.text-center {
+    text-align: center;
+}
+.text-gray-300 {
+    color: #d1d5db;
+}
+.text-gray-400 {
+    color: #9ca3af;
+}
+.text-yellow-400 {
+    color: #cbd5e1;
+}
+.text-yellow-300 {
+    color: #e2e8f0;
+}
+.text-yellow-500 {
+    color: #94a3b8;
+}
+.text-red-400 {
+    color: #fb7185;
+}
+.text-blue-300 {
+    color: #93c5fd;
+}
+.text-green-400 {
+    color: #4ade80;
+}
+.text-purple-400 {
+    color: #a78bfa;
+}
+.cursor-pointer {
+    cursor: pointer;
+}
+.mt-1 { margin-top: 0.25rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 0.75rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.ml-2 { margin-left: 0.5rem; }
+.p-4 { padding: 1rem; }
+.p-6 { padding: 1.5rem; }
+
+/* Resource item */
+.resource-item {
+    background: linear-gradient(135deg, rgba(60, 40, 20, 0.6) 0%, rgba(80, 50, 30, 0.6) 100%);
+    border: 2px solid #64748b;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    cursor: default;
+}
+.resource-item:hover {
+    background: linear-gradient(135deg, rgba(80, 50, 30, 0.8) 0%, rgba(100, 60, 40, 0.8) 100%);
+    border-color: #f8fafc;
+    transform: translateY(-0.125rem);
+    box-shadow: 0 6px 12px rgba(203, 213, 225, 0.2);
+}
+
+/* Stat box */
+.stat-box {
+    background: linear-gradient(135deg, rgba(60, 40, 20, 0.6) 0%, rgba(80, 50, 30, 0.6) 100%);
+    border: 2px solid #64748b;
+    border-radius: 0.5rem;
+    padding: 0.875rem;
+    text-align: center;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+.stat-box:hover {
+    background: linear-gradient(135deg, rgba(80, 50, 30, 0.8) 0%, rgba(100, 60, 40, 0.8) 100%);
+    border-color: #f8fafc;
+    transform: translateY(-0.125rem);
+    box-shadow: 0 6px 12px rgba(203, 213, 225, 0.3);
+}
+
+/* Content panel */
+.content-panel {
+    background: linear-gradient(135deg, rgba(35, 20, 10, 0.8) 0%, rgba(45, 25, 15, 0.8) 100%);
+    border: 2px solid #64748b;
+    border-radius: 0.625rem;
+    padding: 1.5rem;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(203, 213, 225, 0.1);
+    backdrop-filter: blur(2px);
+}
+.content-panel h2 {
+    color: #f8fafc;
+    border-bottom: 2px solid #64748b;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1.125rem;
+    font-size: 1.6em;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+.content-panel h3 {
+    color: #cbd5e1;
+    margin: 0.75rem 0;
+    font-weight: 600;
+}
+
+/* Stat bar */
+.stat-bar {
+    height: 24px;
+    background: linear-gradient(to right, rgba(30, 20, 10, 0.8), rgba(40, 25, 15, 0.8));
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #475569;
+    margin-top: 6px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+}
+.stat-fill {
+    height: 100%;
+    transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 0 10px currentColor;
+}
+.health-fill {
+    background: linear-gradient(90deg, #ff4444, #ff8844, #ffaa44);
+}
+.energy-fill {
+    background: linear-gradient(90deg, #4488ff, #44ccff, #44eeff);
+}
+.glory-fill {
+    background: linear-gradient(90deg, #94a3b8, #e2e8f0, #94a3b8);
+}
+.exp-fill {
+    background: linear-gradient(90deg, #aa44ff, #dd44ff, #ff44ff);
+}
+
+/* Buttons */
+.btn-primary {
+    background: linear-gradient(to bottom, #64748b, #334155);
+    border: 2px solid #94a3b8;
+    color: #f1f5f9;
+    padding: 14px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    box-shadow: 0 4px 12px rgba(148, 163, 184, 0.4);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    display: inline-block;
+}
+.btn-primary:hover:not(:disabled) {
+    background: linear-gradient(to bottom, #94a3b8, #475569);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 16px rgba(148, 163, 184, 0.6);
+    border-color: #cbd5e1;
+}
+.btn-primary:active:not(:disabled) {
+    transform: translateY(-1px);
+}
+.btn-primary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+}
+.btn-primary.w-full {
+    width: 100%;
+}
+
+.btn-success {
+    background: linear-gradient(to bottom, #66bb6a, #2e7d32);
+    border: 2px solid #81c784;
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+    color: white;
+    padding: 14px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+.btn-success:hover:not(:disabled) {
+    background: linear-gradient(to bottom, #81c784, #1b5e20);
+    box-shadow: 0 8px 16px rgba(76, 175, 80, 0.5);
+}
+.btn-success:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    filter: grayscale(0.5);
+}
+.btn-success.w-full {
+    width: 100%;
+}
+
+.btn-danger {
+    background: linear-gradient(to bottom, #ef5350, #c62828);
+    border: 2px solid #f44336;
+    box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+    color: white;
+    padding: 14px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+.btn-danger:hover:not(:disabled) {
+    background: linear-gradient(to bottom, #f44336, #b71c1c);
+    box-shadow: 0 8px 16px rgba(244, 67, 54, 0.5);
+}
+.btn-danger.w-full {
+    width: 100%;
+}
+
+/* Auth Modal */
+#authContainer {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0,0,0,0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 50;
+}
+.modal-overlay {
+    backdrop-filter: blur(6px);
+}
+
+.auth-form {
+    background: linear-gradient(135deg, rgba(20,12,8,0.95) 0%, rgba(30,18,10,0.95) 100%);
+    border: 3px solid #64748b;
+    border-radius: 1rem;
+    padding: 40px;
+    width: 100%;
+    max-width: 520px;
+    box-shadow: 0 0 40px rgba(148,163,184,0.8), inset 0 0 20px rgba(203,213,225,0.1);
+    animation: fadeInScale 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+.auth-form h2 {
+    color: #f8fafc;
+    margin-bottom: 30px;
+    text-align: center;
+    font-size: 2.4em;
+    font-weight: 800;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+    letter-spacing: 2px;
+}
+.form-group {
+    margin-bottom: 1.125rem;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #cbd5e1;
+    font-weight: 700;
+    font-size: 0.95em;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+.form-group input {
+    width: 100%;
+    padding: 12px 14px;
+    background: linear-gradient(to bottom, rgba(30,20,10,0.9), rgba(20,15,10,0.9));
+    border: 2px solid #64748b;
+    border-radius: 6px;
+    color: #e2e8f0;
+    transition: all 0.3s;
+    font-size: 1em;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+}
+.form-group input:focus {
+    outline: none;
+    border-color: #f8fafc;
+    box-shadow: 0 0 12px rgba(203, 213, 225, 0.5), inset 0 2px 4px rgba(0,0,0,0.3);
+    background: linear-gradient(to bottom, rgba(40,25,15,0.95), rgba(30,20,10,0.95));
+}
+
+#error-message, .error-message {
+    background: rgba(255, 68, 68, 0.2);
+    border: 2px solid #ff4444;
+    color: #ff8888;
+    padding: 12px;
+    border-radius: 6px;
+    margin-top: 0.5rem;
+    font-weight: 600;
+}
+.success-message {
+    background: rgba(102, 255, 102, 0.2);
+    border: 2px solid #66ff66;
+    color: #88ff88;
+    padding: 12px;
+    border-radius: 6px;
+    margin-top: 0.5rem;
+    font-weight: 600;
+}
+
+/* Character Selection and Creation */
+#charSelectContainer {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at top, rgba(51, 65, 85, 0.5), rgba(2, 6, 23, 0.97) 65%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    z-index: 50;
+}
+.character-menu {
+    width: min(100%, 860px);
+    max-height: 92vh;
+    overflow-y: auto;
+    padding: clamp(1.25rem, 4vw, 2.5rem);
+}
+.character-menu-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+.character-menu-header p { color: #94a3b8; margin-top: 0.5rem; }
+.character-card {
+    cursor: default;
+    text-align: left;
+}
+.character-card-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+.character-card-actions button { flex: 1; padding: 0.65rem 0.5rem; }
+.creation-form {
+    margin-top: 1.5rem;
+    padding: 1.25rem;
+    border: 1px solid #475569;
+    border-radius: 0.75rem;
+    background: rgba(2, 6, 23, 0.55);
+}
+.creation-form h3 { color: #e2e8f0; font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem; }
+.creation-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+.creation-field label {
+    display: block;
+    color: #cbd5e1;
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 0.45rem;
+}
+.creation-field input, .creation-field select {
+    width: 100%;
+    padding: 0.8rem 0.9rem;
+    background: #0f172a;
+    color: #f8fafc;
+    border: 1px solid #64748b;
+    border-radius: 0.5rem;
+}
+.creation-field input:focus, .creation-field select:focus {
+    outline: 2px solid #cbd5e1;
+    outline-offset: 2px;
+}
+.creation-actions { display: flex; gap: 0.75rem; margin-top: 1.25rem; }
+.creation-actions button { flex: 1; }
+.save-empty {
+    grid-column: 1 / -1;
+    padding: 2rem 1rem;
+    text-align: center;
+    color: #94a3b8;
+    border: 1px dashed #475569;
+    border-radius: 0.75rem;
+}
+.hidden {
+    display: none !important;
+}
+#charGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    max-height: 25rem;
+    overflow-y: auto;
+    padding: 0.25rem;
+}
+#charGrid::-webkit-scrollbar {
+    width: 8px;
+}
+#charGrid::-webkit-scrollbar-track {
+    background: rgba(20,15,10,0.5);
+    border-radius: 10px;
+}
+#charGrid::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, #64748b, #475569);
+    border-radius: 10px;
+}
+#charGrid::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, #64748b, #64748b);
+}
+
+/* Inventory collection */
+.inventory-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin: -0.25rem 0 1.25rem;
+    color: #94a3b8;
+    font-size: 0.9rem;
+}
+.inventory-summary strong {
+    color: #e2e8f0;
+}
+.inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.85rem;
+}
+.inventory-card {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    min-width: 0;
+    padding: 1rem;
+    overflow: hidden;
+    border: 1px solid #475569;
+    border-radius: 0.75rem;
+    background: linear-gradient(145deg, rgba(51, 65, 85, 0.72), rgba(15, 23, 42, 0.9));
+    box-shadow: 0 5px 14px rgba(0, 0, 0, 0.2);
+    transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+.inventory-card::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: linear-gradient(#cbd5e1, #64748b);
+}
+.inventory-card:hover {
+    transform: translateY(-3px);
+    border-color: #cbd5e1;
+    box-shadow: 0 9px 20px rgba(148, 163, 184, 0.16);
+}
+.inventory-icon {
+    display: grid;
+    place-items: center;
+    flex: 0 0 2.75rem;
+    height: 2.75rem;
+    border: 1px solid #64748b;
+    border-radius: 0.65rem;
+    background: rgba(2, 6, 23, 0.65);
+    font-size: 1.4rem;
+}
+.inventory-item-details { min-width: 0; }
+.inventory-item-name {
+    color: #f1f5f9;
+    font-weight: 700;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+.inventory-item-quantity {
+    display: inline-flex;
+    align-items: center;
+    margin: 0.4rem 0 0 0.4rem;
+    padding: 0.15rem 0.5rem;
+    border: 1px solid #94a3b8;
+    border-radius: 999px;
+    color: #f8fafc;
+    background: rgba(71, 85, 105, 0.75);
+    font-size: 0.75rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+.inventory-item-type {
+    display: inline-block;
+    margin-top: 0.45rem;
+    padding: 0.15rem 0.5rem;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 999px;
+    color: #cbd5e1;
+    background: rgba(2, 6, 23, 0.35);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+.inventory-item-bonus {
+    margin-top: 0.45rem;
+    color: #86efac;
+    font-size: 0.8rem;
+}
+.inventory-empty {
+    padding: 2rem 1rem;
+    border: 1px dashed #475569;
+    border-radius: 0.75rem;
+    background: rgba(2, 6, 23, 0.35);
+    text-align: center;
+}
+.inventory-empty-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+
+/* Character Card */
+.character-card {
+    background: linear-gradient(135deg, rgba(35,20,10,0.8) 0%, rgba(45,25,15,0.8) 100%);
+    border: 2px solid #64748b;
+    border-radius: 10px;
+    padding: 18px;
+    text-align: left;
+    cursor: default;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+.character-card:hover {
+    transform: translateY(-6px);
+    border-color: #f8fafc;
+    box-shadow: 0 8px 20px rgba(203, 213, 225, 0.4);
+    background: linear-gradient(135deg, rgba(50,30,15,0.9) 0%, rgba(60,35,20,0.9) 100%);
+}
+.character-card h3 {
+    color: #f8fafc;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    font-size: 1.1em;
+}
+.character-card .text-xs {
+    font-size: 0.75rem;
+    color: #999999;
+}
+.character-card .text-sm {
+    font-size: 0.875rem;
+    color: #cbd5e1;
+    margin-top: 0.5rem;
+}
+
+ .metagame-section {
+    padding-top: 1rem;
+    border-top: 1px solid #475569;
+}
+.metagame-section h3 { color: #e2e8f0; font-size: 1.15rem; font-weight: 800; }
+.metagame-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+    gap: 0.75rem;
+}
+.metagame-stat, .metagame-floor-record {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.85rem;
+    border: 1px solid #475569;
+    border-radius: 0.65rem;
+    background: rgba(15, 23, 42, 0.75);
+}
+.metagame-stat span, .metagame-floor-record span { color: #94a3b8; font-size: 0.78rem; }
+.metagame-stat strong, .metagame-floor-record strong { color: #e2e8f0; font-size: 1.15rem; }
+.metagame-floor-record { flex-direction: row; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+
+.quest-card {
+    padding: 1rem;
+    border: 1px solid #64748b;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+.quest-card:hover {
+    transform: translateY(-2px);
+    border-color: #cbd5e1;
+    box-shadow: 0 8px 18px rgba(148, 163, 184, 0.15);
+}
+.dungeon-room {
+    border: 1px solid #64748b;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+.combat-log {
+    max-height: 12rem;
+    overflow-y: auto;
+    padding: 0.75rem;
+    border: 1px solid #475569;
+    border-radius: 0.5rem;
+    background: rgba(2, 6, 23, 0.7);
+}
+.log-message {
+    padding: 0.35rem 0.5rem;
+    border-left: 2px solid #94a3b8;
+    color: #cbd5e1;
+    font-size: 0.875rem;
+}
+.log-message + .log-message { margin-top: 0.25rem; }
+
+#meritShopBackdrop {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0,0,0,0.8);
+    backdrop-filter: blur(6px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease;
+    z-index: 55;
+}
+
+#meritShopBackdrop.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+#meritShopModal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    background: linear-gradient(135deg, rgba(20,12,8,0.95) 0%, rgba(30,18,10,0.95) 100%);
+    border: 3px solid #64748b;
+    border-radius: 1rem;
+    padding: 2rem 3rem;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 0 40px rgba(148,163,184,0.8), inset 0 0 20px rgba(203,213,225,0.1);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 60;
+    width: 90%;
+    max-width: 640px;
+}
+
+#meritShopModal.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* Notification */
+.notification {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #64748b;
+    color: #f1f5f9;
+    padding: 0.7rem 1.25rem;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 1rem;
+    box-shadow: 0 4px 14px rgba(148, 163, 184, 0.5);
+    z-index: 9999;
+    opacity: 0.95;
+    user-select: none;
+}
+
+/* Cool steel palette, smoother feedback, and responsive navigation */
+body {
+    color: #e2e8f0;
+    background: radial-gradient(circle at 15% 10%, #1e293b 0, transparent 38%),
+                linear-gradient(135deg, #080d16 0%, #111827 55%, #0b1120 100%);
+}
+body::before {
+    background: radial-gradient(circle at 20% 50%, rgba(148, 163, 184, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(203, 213, 225, 0.06) 0%, transparent 50%);
+}
+.game-container {
+    border-color: #64748b;
+    box-shadow: 0 0 40px rgba(148, 163, 184, 0.16), inset 0 0 20px rgba(203, 213, 225, 0.04);
+}
+nav {
+    background: linear-gradient(180deg, #111827 0%, #1e293b 100%);
+    border-color: #64748b;
+}
+.tab-button.sidebar-tab {
+    background: linear-gradient(180deg, #475569, #334155);
+    border-color: #94a3b8;
+    box-shadow: 0 0 10px rgba(148, 163, 184, 0.2);
+}
+.tab-button.sidebar-tab:hover,
+.tab-button.sidebar-tab.active {
+    background: linear-gradient(180deg, #e2e8f0, #94a3b8);
+    border-color: #f8fafc;
+    color: #111827;
+    box-shadow: 0 0 18px rgba(203, 213, 225, 0.35);
+}
+.top-bar, .resource-item, .stat-box, .content-panel,
+.character-card, .item-card, .quest-card, .dungeon-room,
+.merit-shop-item, .auth-form, #meritShopModal {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.92), rgba(15, 23, 42, 0.94));
+    border-color: #64748b;
+}
+.resource-item, .stat-box, .content-panel, .character-card,
+.item-card, .quest-card, .dungeon-room, .merit-shop-item,
+.btn-primary, .btn-success, .btn-danger, .tab-button, #logoutGameBtn {
+    transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease, border-color 180ms ease;
+}
+.btn-primary {
+    background: linear-gradient(180deg, #64748b, #334155);
+    border-color: #94a3b8;
+}
+.btn-primary:hover:not(:disabled) {
+    background: linear-gradient(180deg, #94a3b8, #475569);
+    border-color: #e2e8f0;
+}
+.form-group input {
+    background: #0f172a;
+    border-color: #64748b;
+}
+.form-group input:focus {
+    background: #1e293b;
+    border-color: #cbd5e1;
+    box-shadow: 0 0 12px rgba(203, 213, 225, 0.25);
+}
+:focus-visible {
+    outline: 2px solid #e2e8f0;
+    outline-offset: 3px;
+}
+html { scroll-behavior: smooth; }
+
+.adventure-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    max-width: 720px;
+    margin: 0 auto 1.5rem;
+}
+
+@media (max-width: 800px) {
+    body { padding: 0.5rem; }
+    .game-container { flex-direction: column; min-height: calc(100vh - 1rem); }
+    nav {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.5rem;
+        border-right: 0;
+        border-bottom: 2px solid #64748b;
+    }
+    nav h1, #logoutGameBtn { grid-column: 1 / -1; }
+    nav h1 { margin-bottom: 0.25rem; }
+    .flex-1 { min-width: 0; padding: 1rem; }
+    #charGrid { grid-template-columns: 1fr; }
+    .auth-form { padding: 1.5rem; width: calc(100% - 1rem); max-height: 92vh; overflow-y: auto; }
+    #meritShopModal { padding: 1.25rem; width: calc(100% - 1rem); }
+}
+@media (max-width: 480px) {
+    .top-bar { align-items: flex-start; }
+    .grid-cols-2, [class~="md:grid-cols-2"], [class~="md:grid-cols-3"], [class~="lg:grid-cols-3"], [class~="sm:grid-cols-4"] {
+        grid-template-columns: 1fr;
+    }
+    .content-panel { padding: 1rem; }
+    .content-panel h2 { font-size: 1.3rem; }
+    .creation-fields { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+   </style>
+</head>
+<body class="p-4">
+    <!-- Auth Container -->
+    <div id="authContainer" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 modal-overlay hidden">
+        <div class="auth-form">
+            <h2>⚔️ HAVEN v1</h2>
+            <div id="loginForm">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="loginUsername" placeholder="Enter username" autocomplete="username" />
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter password" autocomplete="current-password" />
+                </div>
+                <div id="loginError" class="error-message hidden"></div>
+                <button class="btn-primary w-full mb-4" id="loginBtn">Login</button>
+                <p class="text-center text-gray-400">
+                    Don't have account?
+                    <span class="text-yellow-500 cursor-pointer hover:text-yellow-300 transition font-bold" onclick="toggleAuthForm()">Register</span>
+                </p>
+            </div>
+            <div id="registerForm" class="hidden">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="registerUsername" placeholder="Choose username" autocomplete="username" />
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="registerPassword" placeholder="Choose password" autocomplete="new-password" />
+                </div>
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" id="registerConfirm" placeholder="Confirm password" autocomplete="new-password" />
+                </div>
+                <div id="registerError" class="error-message hidden"></div>
+                <button class="btn-primary w-full mb-4" id="registerBtn">Register</button>
+                <p class="text-center text-gray-400">
+                    Have account?
+                    <span class="text-yellow-500 cursor-pointer hover:text-yellow-300 transition font-bold" onclick="toggleAuthForm()">Login</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Saved characters and character creation -->
+    <div id="charSelectContainer" class="modal-overlay">
+        <section class="auth-form character-menu" aria-labelledby="characterMenuTitle">
+            <header class="character-menu-header">
+                <h2 id="characterMenuTitle">⚔️ Your Heroes</h2>
+                <p>Select a saved character or create a new hero to begin.</p>
+            </header>
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-gray-300 font-bold">Saved Characters</h3>
+                <span id="characterSaveCount" class="text-xs text-gray-400">0 saves</span>
+            </div>
+            <div id="charGrid" class="scrollbar-custom" aria-live="polite"></div>
+            <button class="btn-primary w-full mt-4" id="createCharBtn" type="button">＋ Create New Character</button>
+            <form id="characterCreationForm" class="creation-form hidden">
+                <h3>Create Your Character</h3>
+                <div class="creation-fields">
+                    <div class="creation-field">
+                        <label for="newCharacterName">Character name</label>
+                        <input id="newCharacterName" name="characterName" type="text" maxlength="24" placeholder="Name your hero" required autocomplete="off" />
+                    </div>
+                    <div class="creation-field">
+                        <label for="newCharacterRace">Race</label>
+                        <select id="newCharacterRace" name="race">
+                            <option>Human</option>
+                            <option>Elf</option>
+                            <option>Dwarf</option>
+                        </select>
+                    </div>
+                    <div class="creation-field">
+                        <label for="newCharacterClass">Class</label>
+                        <select id="newCharacterClass" name="characterClass">
+                            <option>Warrior</option>
+                            <option>Mage</option>
+                            <option>Rogue</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="characterCreationError" class="error-message hidden" role="alert"></div>
+                <div class="creation-actions">
+                    <button class="btn-primary" type="submit">Create Hero</button>
+                    <button class="btn-danger" id="cancelCreateCharBtn" type="button">Cancel</button>
+                </div>
+            </form>
+            <button class="btn-danger w-full mt-3" id="logoutBtn" type="button">Back to Start</button>
+        </section>
+    </div>
+
+    <!-- First-time introduction for newly created heroes -->
+    <div id="welcomeModal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+        <section class="auth-form character-menu">
+            <header class="character-menu-header">
+                <h2 id="welcomeTitle">🌒 Welcome to Haven</h2>
+                <p>Your journey starts here, hero. A growing darkness threatens Haven, and the village needs you.</p>
+            </header>
+            <div class="space-y-3 text-sm text-gray-300">
+                <p><strong class="text-yellow-400">Follow the story:</strong> Open Quests, accept the next chapter, complete its objective, then return to claim gold, EXP, and merits.</p>
+                <p><strong class="text-yellow-400">Grow stronger:</strong> Fight in Adventure, train your stats, and buy gear or potions at the Market. Your resources regenerate over time, and Rest can fully restore health and energy when available.</p>
+                <p><strong class="text-yellow-400">Explore the dungeons:</strong> Clear three enemies on each floor to earn rewards and advance the story. Floors unlock in order, and your health carries between fights—prepare before you enter.</p>
+                <p><strong class="text-yellow-400">Chase long-term goals:</strong> Rank Quests offer six challenges for each 10-level tier. Check Stats to track your lifetime progress.</p>
+            </div>
+            <button class="btn-primary w-full mt-6" id="beginAdventureBtn" type="button">Begin Adventure</button>
+        </section>
+    </div>
+
+    <!-- Main Game with Sidebar Navigation -->
+<div id="gameContainer" class="hidden max-w-7xl mx-auto relative z-10 flex min-h-[80vh] rounded-lg overflow-hidden game-container">
+  <!-- Sidebar -->
+  <nav class="bg-gradient-to-b from-[rgba(35,20,10,0.95)] to-[rgba(45,25,15,0.95)] border-r-2 border-r-[#64748b] w-60 flex flex-col p-4 space-y-4 text-yellow-400 text-sm font-semibold shadow-lg">
+    <h1 class="text-3xl font-black text-yellow-400 mb-4 glowing-text select-none">⚔️ HAVEN v1</h1>
+    <button class="tab-button sidebar-tab active text-left w-full" data-tab="home" onclick="switchTab('home')">🏠 Home</button>
+    <button class="tab-button sidebar-tab text-left w-full" data-tab="adventure" onclick="switchTab('adventure')">⚔️ Adventure</button>
+    <button class="tab-button sidebar-tab text-left w-full" data-tab="dungeon" onclick="switchTab('dungeon')">🏰 Dungeon</button>
+    <button class="tab-button sidebar-tab text-left w-full" data-tab="training" onclick="switchTab('training')">💪 Training</button>
+    <button class="tab-button sidebar-tab text-left w-full" data-tab="market" onclick="switchTab('market')">🏪 Market</button>
+    <button class="tab-button sidebar-tab text-left w-full" data-tab="inventory" onclick="switchTab('inventory')">🎒 Inventory</button>
+    <button class="tab-button sidebar-tab text-left w-full" data-tab="quests" onclick="switchTab('quests')">📜 Quests</button>
+    <button class="tab-button sidebar-tab text-left w-full" data-tab="stats" onclick="switchTab('stats')">📊 Stats</button>
+    <button class="tab-button sidebar-tab text-left w-full" data-tab="account" onclick="switchTab('account')">⚙️ Account</button>
+    <button class="btn-danger mt-auto w-full" id="logoutGameBtn">Logout</button>
+  </nav>
+
+  <!-- Content -->
+  <div class="flex-1 p-6 space-y-4 overflow-auto scrollbar-custom relative">
+    <!-- Top Bar -->
+    <div class="top-bar flex justify-between items-center flex-wrap gap-4 mb-4 rounded-md shadow-inner border-gray-700 border p-4">
+      <div>
+        <p class="text-yellow-400 font-bold" id="charInfo">Loading...</p>
+      </div>
+      <div class="text-gray-300 font-mono font-semibold" id="currentTime"></div>
+    </div>
+
+    <!-- Resources -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3 text-sm mb-6">
+      <div class="resource-item">
+        <div class="text-gray-400 text-xs font-bold">LEVEL</div>
+        <div class="text-yellow-400 font-black text-xl mt-1" id="playerLevel">1</div>
+      </div>
+      <div class="resource-item">
+        <div class="text-gray-400 text-xs font-bold">GOLD</div>
+        <div class="text-yellow-500 font-black text-xl mt-1" id="playerGold">1000</div>
+      </div>
+      <div class="resource-item">
+        <div class="text-gray-400 text-xs font-bold">HEALTH</div>
+        <div class="text-red-400 font-bold text-sm mt-1"><span id="playerHP">100</span>/<span id="maxHP">100</span></div>
+        <div class="stat-bar"><div id="hpBar" class="stat-fill health-fill" style="width: 100%"></div></div>
+        <div id="hpRegenTimer" class="text-xs text-gray-400 mt-1" aria-live="polite">Next +5 in 03:00</div>
+      </div>
+      <div class="resource-item">
+        <div class="text-gray-400 text-xs font-bold">ENERGY</div>
+        <div class="text-blue-300 font-bold text-sm mt-1"><span id="playerEnergy">100</span>/<span id="maxEnergy">100</span></div>
+        <div class="stat-bar"><div id="energyBar" class="stat-fill energy-fill" style="width: 100%"></div></div>
+        <div id="energyRegenTimer" class="text-xs text-gray-400 mt-1" aria-live="polite">Next +5 in 03:00</div>
+      </div>
+      <div class="resource-item">
+        <div class="text-gray-400 text-xs font-bold">GLORY</div>
+        <div class="text-yellow-300 font-bold text-sm mt-1"><span id="playerGlory">100</span>/<span id="maxGlory">100</span></div>
+        <div class="stat-bar"><div id="gloryBar" class="stat-fill glory-fill" style="width: 100%"></div></div>
+        <div id="gloryRegenTimer" class="text-xs text-gray-400 mt-1" aria-live="polite">Next +5 in 03:00</div>
+      </div>
+      <div class="resource-item cursor-pointer" id="playerMeritsContainer">
+        <div class="text-gray-400 text-xs font-bold">MERITS</div>
+        <div class="text-green-400 font-black text-xl mt-1" id="playerMerits">50</div>
+      </div>
+      <div class="resource-item">
+        <div class="text-gray-400 text-xs font-bold">JEWELS</div>
+        <div class="text-purple-400 font-black text-xl mt-1" id="playerJewels">0</div>
+      </div>
+    </div>
+
+        <!-- Content Area -->
+        <div class="space-y-4" id="tabContents">
+            <!-- Home Tab -->
+            <div id="homeTab" class="tab-content">
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div class="content-panel">
+                        <h2>📋 Character Info</h2>
+                        <div class="space-y-3 text-sm">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-300">Name:</span>
+                                <span id="charName" class="text-yellow-400 font-bold">Adventurer</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-300">Race:</span>
+                                <span id="charRace" class="text-yellow-400 font-bold">Human</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-300">Class:</span>
+                                <span id="charClass" class="text-yellow-400 font-bold">Warrior</span>
+                            </div>
+                            <div class="mt-4">
+                                <span class="text-gray-400 text-xs">Experience Progress</span>
+                                <div class="text-sm font-bold text-yellow-300 mt-1"><span id="charExp">0</span>/<span id="expNext">500</span> EXP</div>
+                                <div class="stat-bar mt-2"><div id="expBar" class="stat-fill exp-fill" style="width: 0%"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="content-panel">
+                        <h2>⚡ Battle Stats</h2>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="stat-box">
+                                <div class="text-gray-400 text-xs font-bold">STR</div>
+                                <div class="text-lg font-black text-red-400 mt-2" id="statStr">15</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="text-gray-400 text-xs font-bold">DEF</div>
+                                <div class="text-lg font-black text-blue-400 mt-2" id="statDef">12</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="text-gray-400 text-xs font-bold">SPD</div>
+                                <div class="text-lg font-black text-yellow-400 mt-2" id="statSpd">10</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="text-gray-400 text-xs font-bold">EVA</div>
+                                <div class="text-lg font-black text-green-400 mt-2" id="statEva">8</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="content-panel">
+                        <h2>🎯 Quick Actions</h2>
+                        <div class="space-y-2">
+                            <button class="btn-primary w-full text-sm" id="quickCombatBtn" onclick="switchTab('adventure')">⚔️ Start Combat</button>
+                            <button class="btn-primary w-full text-sm" id="quickRestBtn" onclick="restNow()">😴 Rest Now</button>
+                            <p id="restCooldown" class="text-gray-400 text-xs text-center" aria-live="polite">Rest is ready.</p>
+                            <button class="btn-success w-full text-sm" id="quickTrainBtn" onclick="switchTab('training')">💪 Quick Train</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Purchased items container for Home tab -->
+                <div id="purchasedItems" class="content-panel mt-6">
+                    <h2>📦 Purchased Items</h2>
+                    <div class="text-gray-400 text-sm">No items purchased yet</div>
+                </div>
+            </div>
+
+            <!-- Adventure Tab -->
+            <div id="adventureTab" class="tab-content hidden">
+                <div class="content-panel">
+                    <h2>⚔️ Adventure</h2>
+                    <p class="text-gray-400 mb-6 font-semibold">Choose your adventure path and test your skills!</p>
+                    <div class="adventure-actions">
+                        <button class="btn-primary w-full combat-action-btn" id="combatBtn" onclick="startCombat()">
+                            <div class="text-sm font-bold">⚔️ Combat</div>
+                            <div class="text-xs text-gray-200">15 Energy</div>
+                        </button>
+                        <button class="btn-primary w-full combat-action-btn" id="questBtn" onclick="startQuest()">
+                            <div class="text-sm font-bold">📜 Quest</div>
+                            <div class="text-xs text-gray-200">25 Energy</div>
+                        </button>
+                    </div>
+
+                    <div id="combatArea" class="hidden">
+                        <div class="combat-arena">
+                            <h3 class="text-center mb-6 text-xl font-black text-yellow-400 glowing-text">⚔️ COMBAT ARENA</h3>
+                            <div class="grid md:grid-cols-2 gap-4 mb-6">
+                                <div>
+                                    <div class="text-center text-yellow-500 font-black mb-3">YOU</div>
+                                    <div class="bg-gray-950 p-4 rounded-lg border-2 border-blue-900">
+                                        <div class="text-sm mb-3 font-bold">Health: <span id="playerCombatHP" class="text-red-400">100</span>/<span id="playerCombatMaxHP" class="text-gray-400">100</span></div>
+                                        <div class="stat-bar"><div id="playerCombatHPBar" class="stat-fill health-fill" style="width: 100%"></div></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="text-center text-red-500 font-black mb-3" id="enemyName">Enemy</div>
+                                    <div class="enemy-card">
+                                        <div class="text-sm mb-3 font-bold">Health: <span id="enemyHP" class="text-red-400">80</span>/<span id="enemyMaxHP" class="text-gray-400">80</span></div>
+                                        <div class="stat-bar"><div id="enemyHPBar" class="stat-fill health-fill" style="width: 100%"></div></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid md:grid-cols-3 gap-3 mb-6">
+                                <button class="btn-primary combat-action-btn" id="attackBtn" onclick="playerAttack()">⚔️ Attack</button>
+                                <button class="btn-primary combat-action-btn" id="defendBtn" onclick="playerDefend()">🛡️ Defend</button>
+                                <button class="btn-primary combat-action-btn" id="skillBtn" onclick="playerSkill()">✨ Skill</button>
+                            </div>
+
+                            <div class="combat-log scrollbar-custom" id="combatLog">
+                                <div class="log-message info">Combat started! Choose your action.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dungeon Tab -->
+            <div id="dungeonTab" class="tab-content hidden">
+                <div class="content-panel">
+                    <h2>🏰 The Haven Dungeon</h2>
+                    <p class="text-gray-400 mb-4 font-semibold">Descend through six connected floors, defeat three waves on each, and uncover what is corrupting the Shadowrealms.</p>
+                    <p id="dungeonStatus" class="text-sm text-gray-300 mb-4" aria-live="polite">A strange signal beneath Haven leads from the goblin warrens to a rift below the old kingdom. Clear each floor to unlock the next; your health carries between fights.</p>
+                    <div id="dungeonRooms" class="grid md:grid-cols-3 gap-4">
+                        <article class="dungeon-room content-panel">
+                            <h3 class="font-bold text-yellow-400">Floor 1: Goblin Warren</h3>
+                            <p class="text-xs text-gray-400 mt-2">Scout, brute, then Warren Chief · 10 Energy</p>
+                            <button class="btn-success w-full text-sm mt-3" onclick="enterDungeon(1)">Enter the Warren</button>
+                        </article>
+                        <article class="dungeon-room content-panel">
+                            <h3 class="font-bold text-yellow-400">Floor 2: Skeleton Crypt</h3>
+                            <p class="text-xs text-gray-400 mt-2">Boneguard, archer, then Crypt Warden · 20 Energy</p>
+                            <button class="btn-success w-full text-sm mt-3" onclick="enterDungeon(2)">Enter the Crypt</button>
+                        </article>
+                        <article class="dungeon-room content-panel">
+                            <h3 class="font-bold text-yellow-400">Floor 3: Dragon’s Lair</h3>
+                            <p class="text-xs text-gray-400 mt-2">Ash drake, wyrm guard, then the Ashen Wyrm · 30 Energy</p>
+                            <button class="btn-success w-full text-sm mt-3" onclick="enterDungeon(3)">Enter the Lair</button>
+                        </article>
+                        <article class="dungeon-room content-panel">
+                            <h3 class="font-bold text-yellow-400">Floor 4: Sunken Archive</h3>
+                            <p class="text-xs text-gray-400 mt-2">Drowned scribe, ink horror, then the Archive Keeper · 40 Energy</p>
+                            <button class="btn-success w-full text-sm mt-3" onclick="enterDungeon(4)">Enter the Archive</button>
+                        </article>
+                        <article class="dungeon-room content-panel">
+                            <h3 class="font-bold text-yellow-400">Floor 5: Hollow Crown</h3>
+                            <p class="text-xs text-gray-400 mt-2">Crownless knight, shade, then the Hollow Regent · 50 Energy</p>
+                            <button class="btn-success w-full text-sm mt-3" onclick="enterDungeon(5)">Enter the Crown</button>
+                        </article>
+                        <article class="dungeon-room content-panel">
+                            <h3 class="font-bold text-yellow-400">Floor 6: Rift Heart</h3>
+                            <p class="text-xs text-gray-400 mt-2">Rift stalker, void herald, then the Heart of Shadow · 60 Energy</p>
+                            <button class="btn-success w-full text-sm mt-3" onclick="enterDungeon(6)">Enter the Rift</button>
+                        </article>
+                    </div>
+                    <section id="dungeonBattle" class="content-panel mt-4 hidden" aria-live="polite">
+                        <div class="flex justify-between items-center flex-wrap gap-2 mb-4">
+                            <h3 id="dungeonEncounterTitle" class="text-xl font-black text-yellow-400">Dungeon Encounter</h3>
+                            <span id="dungeonWave" class="text-sm text-gray-300">Wave 1 of 3</span>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-4 mb-4">
+                            <div class="stat-box">
+                                <div class="font-bold text-blue-300">YOU</div>
+                                <div class="text-sm mt-2">Health: <span id="dungeonPlayerHP">100</span>/<span id="dungeonPlayerMaxHP">100</span></div>
+                                <div class="stat-bar"><div id="dungeonPlayerHPBar" class="stat-fill health-fill" style="width:100%"></div></div>
+                            </div>
+                            <div class="stat-box">
+                                <div id="dungeonEnemyName" class="font-bold text-red-400">Enemy</div>
+                                <div class="text-sm mt-2">Health: <span id="dungeonEnemyHP">50</span>/<span id="dungeonEnemyMaxHP">50</span></div>
+                                <div class="stat-bar"><div id="dungeonEnemyHPBar" class="stat-fill health-fill" style="width:100%"></div></div>
+                            </div>
+                        </div>
+                        <div class="grid md:grid-cols-3 gap-3 mb-4">
+                            <button class="btn-primary" type="button" onclick="dungeonAction('attack')">⚔️ Attack</button>
+                            <button class="btn-primary" type="button" title="Brace for the next enemy attack to reduce the damage you take." onclick="dungeonAction('defend')">🛡️ Defend</button>
+                            <button class="btn-primary" id="dungeonSkillBtn" type="button" title="Spend 5 energy for a stronger attack. Save energy if you need it for later waves." onclick="dungeonAction('skill')">✨ Power Strike (5 Energy)</button>
+                        </div>
+                        <div id="dungeonCombatLog" class="combat-log scrollbar-custom" aria-live="polite"></div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- Training Tab -->
+            <div id="trainingTab" class="tab-content hidden">
+                <div class="content-panel">
+                    <h2>💪 Training</h2>
+                    <p class="text-gray-400 mb-6 font-semibold">Improve your stats through intense training!</p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6" aria-live="polite" aria-label="Current character stats">
+                        <div class="stat-box">
+                            <div class="text-gray-400 text-xs font-bold">STRENGTH</div>
+                            <div id="trainingStatStr" class="text-lg font-black text-red-400 mt-2">15</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="text-gray-400 text-xs font-bold">DEFENSE</div>
+                            <div id="trainingStatDef" class="text-lg font-black text-blue-300 mt-2">12</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="text-gray-400 text-xs font-bold">SPEED</div>
+                            <div id="trainingStatSpd" class="text-lg font-black text-yellow-400 mt-2">10</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="text-gray-400 text-xs font-bold">EVASION</div>
+                            <div id="trainingStatEva" class="text-lg font-black text-green-400 mt-2">8</div>
+                        </div>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <button class="btn-success w-full text-sm" title="Spend 20 Energy. Train Strength, Defense, Speed, and Evasion; each session drains up to 5 Glory." onclick="trainAllStats()">
+                            <div class="font-bold">🏋️ Train All Stats</div>
+                            <div class="text-xs text-gray-200">Cost: 20 Energy | Lose up to 20 Glory</div>
+                        </button>
+                        <button class="btn-primary w-full text-sm" title="Spend 5 Energy. Training drains up to 5 Glory; your remaining Glory determines the Strength gain." onclick="trainStat('STR')">
+                            <div class="font-bold">💪 Strength Training</div>
+                            <div class="text-xs text-gray-200">Cost: 5 Energy | Lose up to 5 Glory | Gain: 1–3 STR</div>
+                        </button>
+                        <button class="btn-primary w-full text-sm" title="Spend 5 Energy. Training drains up to 5 Glory; your remaining Glory determines the Defense gain." onclick="trainStat('DEF')">
+                            <div class="font-bold">🛡️ Defense Training</div>
+                            <div class="text-xs text-gray-200">Cost: 5 Energy | Lose up to 5 Glory | Gain: 1–3 DEF</div>
+                        </button>
+                        <button class="btn-primary w-full text-sm" title="Spend 5 Energy. Training drains up to 5 Glory; your remaining Glory determines the Speed gain." onclick="trainStat('SPD')">
+                            <div class="font-bold">⚡ Speed Training</div>
+                            <div class="text-xs text-gray-200">Cost: 5 Energy | Lose up to 5 Glory | Gain: 1–3 SPD</div>
+                        </button>
+                        <button class="btn-primary w-full text-sm" title="Spend 5 Energy. Training drains up to 5 Glory; your remaining Glory determines the Evasion gain." onclick="trainStat('EVA')">
+                            <div class="font-bold">🎯 Evasion Training</div>
+                            <div class="text-xs text-gray-200">Cost: 5 Energy | Lose up to 5 Glory | Gain: 1–3 EVA</div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Market Tab -->
+            <div id="marketTab" class="tab-content hidden">
+                <div class="content-panel">
+                    <h2>🏪 Market</h2>
+                    <p class="text-gray-400 mb-6 font-semibold">Buy and sell items to enhance your power!</p>
+                    <div id="marketItems" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                </div>
+            </div>
+
+            <!-- Inventory Tab -->
+            <div id="inventoryTab" class="tab-content hidden">
+                <div class="content-panel">
+                    <h2>🎒 Inventory</h2>
+                    <div class="inventory-summary">
+                        <span>Your collected gear and dungeon finds.</span>
+                        <span id="inventoryCount"><strong>0</strong> items</span>
+                    </div>
+                    <div id="inventoryList" class="inventory-grid" aria-live="polite">
+                        <div class="inventory-empty">
+                            <div class="inventory-empty-icon" aria-hidden="true">🧭</div>
+                            <div class="font-bold text-gray-300">Your pack is empty</div>
+                            <p class="text-sm text-gray-400 mt-1">Buy gear at the Market or explore a dungeon to find items.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quests Tab -->
+            <div id="questsTab" class="tab-content hidden">
+                <div class="content-panel">
+                    <h2>📜 Quests</h2>
+                    <p class="text-gray-400 mb-6 font-semibold">Follow the mystery from Haven’s ruins through the crypt, the wyrm’s lair, the sunken archive, and the Hollow Crown to the Rift Heart. Accept each chapter, complete its objective, then return here to claim your rewards.</p>
+                    <div id="questsList" class="space-y-3" aria-live="polite"></div>
+                    <section class="metagame-section mt-6" aria-labelledby="rankQuestsTitle">
+                        <h3 id="rankQuestsTitle">⚔️ Rank Quests</h3>
+                        <p class="text-sm text-gray-400 mt-2 mb-4">Complete six rank quests in each 10-level tier. Earlier ranks remain available as you advance.</p>
+                        <div id="rankQuestsList" class="space-y-3" aria-live="polite"></div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- Stats Tab -->
+            <div id="statsTab" class="tab-content hidden">
+                <div class="content-panel">
+                    <h2>📊 Character Statistics</h2>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h3>Core Stats</h3>
+                            <div class="space-y-3 mt-4">
+                                <div class="flex justify-between items-center text-sm">
+                                    <span class="text-gray-300">Strength (STR):</span>
+                                    <span id="statsStr" class="text-red-400 font-bold">15</span>
+                                </div>
+                                <div class="flex justify-between items-center text-sm">
+                                    <span class="text-gray-300">Defense (DEF):</span>
+                                    <span id="statsDef" class="text-blue-400 font-bold">12</span>
+                                </div>
+                                <div class="flex justify-between items-center text-sm">
+                                    <span class="text-gray-300">Speed (SPD):</span>
+                                    <span id="statsSpd" class="text-yellow-400 font-bold">10</span>
+                                </div>
+                                <div class="flex justify-between items-center text-sm">
+                                    <span class="text-gray-300">Evasion (EVA):</span>
+                                    <span id="statsEva" class="text-green-400 font-bold">8</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <h3>Achievements</h3>
+                            <div class="space-y-2 mt-4 text-sm">
+                                <div class="text-gray-400">🏆 First Steps - Reach Level 5</div>
+                                <div class="text-gray-400">⚔️ Warrior - Win 10 Combats</div>
+                                <div class="text-gray-400">🐉 Dragon Slayer - Defeat Dragon Boss</div>
+                            </div>
+                        </div>
+                    </div>
+                    <section class="metagame-section mt-6" aria-labelledby="metagameStatsTitle">
+                        <h3 id="metagameStatsTitle">🧠 Lifetime & Meta Statistics</h3>
+                        <p class="text-sm text-gray-400 mt-2 mb-4">A running record of this hero’s adventures, economy, and progress.</p>
+                        <div class="metagame-grid">
+                            <article class="metagame-stat"><span>Combat wins</span><strong id="metaCombatWins">0</strong></article>
+                            <article class="metagame-stat"><span>Combat losses</span><strong id="metaCombatLosses">0</strong></article>
+                            <article class="metagame-stat"><span>Combat win rate</span><strong id="metaCombatWinRate">—</strong></article>
+                            <article class="metagame-stat"><span>Damage dealt</span><strong id="metaDamageDealt">0</strong></article>
+                            <article class="metagame-stat"><span>Damage taken</span><strong id="metaDamageTaken">0</strong></article>
+                            <article class="metagame-stat"><span>Dungeon clears</span><strong id="metaDungeonClears">0</strong></article>
+                            <article class="metagame-stat"><span>Dungeon attempts</span><strong id="metaDungeonAttempts">0</strong></article>
+                            <article class="metagame-stat"><span>Dungeon defeats</span><strong id="metaDungeonDefeats">0</strong></article>
+                            <article class="metagame-stat"><span>Dungeon clear rate</span><strong id="metaDungeonClearRate">—</strong></article>
+                            <article class="metagame-stat"><span>Training sessions</span><strong id="metaTrainingSessions">0</strong></article>
+                            <article class="metagame-stat"><span>Quests completed</span><strong id="metaQuestsCompleted">0</strong></article>
+                            <article class="metagame-stat"><span>Items purchased</span><strong id="metaItemsPurchased">0</strong></article>
+                            <article class="metagame-stat"><span>Potions used</span><strong id="metaPotionsUsed">0</strong></article>
+                            <article class="metagame-stat"><span>Gold earned</span><strong id="metaGoldEarned">0</strong></article>
+                            <article class="metagame-stat"><span>Gold spent</span><strong id="metaGoldSpent">0</strong></article>
+                            <article class="metagame-stat"><span>Total EXP earned</span><strong id="metaExpEarned">0</strong></article>
+                            <article class="metagame-stat"><span>Highest level reached</span><strong id="metaPeakLevel">1</strong></article>
+                        </div>
+                        <div class="metagame-floor-record mt-4">
+                            <span>Dungeon floors cleared</span>
+                            <strong>Floor I: <span id="metaFloor1Clears">0</span> · II: <span id="metaFloor2Clears">0</span> · III: <span id="metaFloor3Clears">0</span> · IV: <span id="metaFloor4Clears">0</span> · V: <span id="metaFloor5Clears">0</span> · VI: <span id="metaFloor6Clears">0</span></strong>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- Account Tab -->
+            <div id="accountTab" class="tab-content hidden">
+                <div class="content-panel">
+                    <h2>⚙️ Account Settings</h2>
+                    <div class="space-y-4">
+                        <div class="text-sm">
+                            <span class="text-gray-400">Account Status:</span>
+                            <span class="text-green-400 font-bold ml-2">Active</span>
+                        </div>
+                        <div class="text-sm">
+                            <span class="text-gray-400">Member Since:</span>
+                            <span class="text-yellow-400 font-bold ml-2" id="memberSince">Today</span>
+                        </div>
+                        <section>
+                            <button class="btn-primary w-full text-sm" id="gameGuideBtn" type="button" aria-expanded="false" aria-controls="gameGuide" onclick="toggleGameGuide()">🧭 What should I do?</button>
+                            <div id="gameGuide" class="content-panel mt-3 hidden" tabindex="-1">
+                                <h3>Haven Adventurer’s Guide</h3>
+                                <p class="text-sm text-gray-300 mt-2">Your goal is to protect Haven by following the story, growing stronger, and uncovering the source of the growing darkness.</p>
+                                <h3 class="mt-3">Your next steps</h3>
+                                <ol class="text-sm text-gray-300 mt-2" style="list-style: decimal; padding-left: 1.5rem;">
+                                    <li>Open <strong>Quests</strong> and accept the current story chapter. Complete its objective, then return to claim gold, EXP, and merits. New chapters unlock in order.</li>
+                                    <li>Use <strong>Adventure</strong> to fight enemies and earn rewards. Combat costs Energy; Attack deals damage, Defend reduces the next hit, and Skill deals a stronger strike.</li>
+                                    <li>Visit <strong>Training</strong> to spend Energy on Strength, Defense, Speed, or Evasion. Strength and Defense help in fights; your level and stats also make Adventure enemies tougher.</li>
+                                    <li>Buy gear and potions in the <strong>Market</strong>. Gear bonuses apply when bought. Find your gear and consumables in <strong>Inventory</strong>; use potions there to restore a resource.</li>
+                                    <li>Enter the <strong>Dungeon</strong> when you are ready. Each floor has three enemies, costs Energy, and carries your health between fights. Clear floors in order to earn rewards and unlock the next floor.</li>
+                                    <li>Take on the six <strong>Rank Quests</strong> for your level tier in the Quests journal for extra long-term challenges and rewards.</li>
+                                </ol>
+                                <h3 class="mt-3">Helpful reminders</h3>
+                                <ul class="text-sm text-gray-300 mt-2" style="list-style: disc; padding-left: 1.5rem;">
+                                    <li>Health, Energy, and Glory regenerate over time. Rest fully restores Health and Energy, but has a long cooldown.</li>
+                                    <li>Check <strong>Home</strong> for your character’s stats and quick actions, and <strong>Stats</strong> for your lifetime progress.</li>
+                                    <li>If you’re unsure what to do next, follow the first available story quest and prepare for its objective.</li>
+                                </ul>
+                            </div>
+                        </section>
+                        <button class="btn-danger w-full mt-6" id="deleteCharBtn" onclick="deleteCharacter()">Delete Character</button>
+                        <button class="btn-danger w-full" id="logoutAccBtn" onclick="logout()">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Merit Shop Modal -->
+    <div id="meritShopBackdrop" aria-hidden="true" onclick="hideMeritShop()"></div>
+    <div id="meritShopModal" role="dialog" aria-modal="true" aria-labelledby="meritShopTitle">
+        <button class="btn-danger mb-4" type="button" onclick="hideMeritShop()">Close</button>
+        <h2 id="meritShopTitle">💚 Merit Shop</h2>
+        <div class="flex justify-between items-center mb-6">
+            <p class="text-gray-400 font-semibold">Spend your merits on powerful upgrades and permanent boosts!</p>
+            <div class="text-2xl font-black text-green-400">💚 <span id="meritShopBalanceModal">50</span></div>
+        </div>
+
+        <!-- Stat Boosts Section -->
+        <h3 class="text-yellow-400 font-bold text-lg mb-4">⚡ Permanent Stat Boosts</h3>
+        <div class="grid md:grid-cols-2 gap-4 mb-8">
+            <div class="merit-shop-item">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <div class="font-bold text-green-300">💪 Strength Boost</div>
+                        <div class="text-xs text-gray-400 mt-1">Permanently +3 STR</div>
+                    </div>
+                    <div class="merit-cost">20 Merits</div>
+                </div>
+                <button class="btn-success w-full text-sm" title="Costs 20 merits and permanently adds 3 Strength to this character." onclick="buyMeritItem('Strength Boost', 20, 'str', 3)">Purchase</button>
+            </div>
+
+            <div class="merit-shop-item">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <div class="font-bold text-green-300">🛡️ Defense Boost</div>
+                        <div class="text-xs text-gray-400 mt-1">Permanently +3 DEF</div>
+                    </div>
+                    <div class="merit-cost">20 Merits</div>
+                </div>
+                <button class="btn-success w-full text-sm" title="Costs 20 merits and permanently adds 3 Defense to this character." onclick="buyMeritItem('Defense Boost', 20, 'def', 3)">Purchase</button>
+            </div>
+
+            <div class="merit-shop-item">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <div class="font-bold text-green-300">⚡ Speed Boost</div>
+                        <div class="text-xs text-gray-400 mt-1">Permanently +3 SPD</div>
+                    </div>
+                    <div class="merit-cost">20 Merits</div>
+                </div>
+                <button class="btn-success w-full text-sm" title="Costs 20 merits and permanently adds 3 Speed to this character." onclick="buyMeritItem('Speed Boost', 20, 'spd', 3)">Purchase</button>
+            </div>
+
+            <div class="merit-shop-item">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <div class="font-bold text-green-300">🎯 Evasion Boost</div>
+                        <div class="text-xs text-gray-400 mt-1">Permanently +3 EVA</div>
+                    </div>
+                    <div class="merit-cost">20 Merits</div>
+                </div>
+                <button class="btn-success w-full text-sm" title="Costs 20 merits and permanently adds 3 Evasion to this character." onclick="buyMeritItem('Evasion Boost', 20, 'eva', 3)">Purchase</button>
+            </div>
+        </div>
+
+        <!-- Health & Energy Boosts -->
+        <h3 class="text-yellow-400 font-bold text-lg mb-4">❤️ Health & Energy Boosts</h3>
+        <div class="grid md:grid-cols-2 gap-4 mb-8">
+            <div class="merit-shop-item">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <div class="font-bold text-green-300">❤️ Max Health Increase</div>
+                        <div class="text-xs text-gray-400 mt-1">Permanently +20 Max HP</div>
+                    </div>
+                    <div class="merit-cost">25 Merits</div>
+                </div>
+                <button class="btn-success w-full text-sm" title="Costs 25 merits, permanently adds 20 maximum health, and fully restores health." onclick="buyMeritItem('Health Increase', 25, 'maxHp', 20)">Purchase</button>
+            </div>
+
+            <div class="merit-shop-item">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <div class="font-bold text-green-300">⚡ Max Energy Increase</div>
+                        <div class="text-xs text-gray-400 mt-1">Permanently +20 Max Energy</div>
+                    </div>
+                    <div class="merit-cost">25 Merits</div>
+                </div>
+                <button class="btn-success w-full text-sm" title="Costs 25 merits, permanently adds 20 maximum energy, and fully restores energy." onclick="buyMeritItem('Energy Increase', 25, 'maxEnergy', 20)">Purchase</button>
+            </div>
+        </div>
+
+        <!-- Special Items -->
+        <h3 class="text-yellow-400 font-bold text-lg mb-4">✨ Special Items</h3>
+        <div class="grid md:grid-cols-2 gap-4 mb-8">
+            <div class="merit-shop-item">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <div class="font-bold text-green-300">💎 Premium Jewel</div>
+                        <div class="text-xs text-gray-400 mt-1">Gain 1 Premium Jewel</div>
+                    </div>
+                    <div class="merit-cost">15 Merits</div>
+                </div>
+                <button class="btn-success w-full text-sm" onclick="buyMeritItem('Premium Jewel', 15, 'jewels', 1)">Purchase</button>
+            </div>
+
+            <div class="merit-shop-item">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <div class="font-bold text-green-300">🌟 Experience Multiplier</div>
+                        <div class="text-xs text-gray-400 mt-1">+25% EXP for 1 hour</div>
+                    </div>
+                    <div class="merit-cost">30 Merits</div>
+                </div>
+                <button class="btn-success w-full text-sm" onclick="buyMeritItem('EXP Multiplier', 30, 'expBoost', 1)">Purchase</button>
+            </div>
+
+            <div class="merit-shop-item">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <div class="font-bold text-green-300">💰 Gold Multiplier</div>
+                        <div class="text-xs text-gray-400 mt-1">+50% Gold for 1 hour</div>
+                    </div>
+                    <div class="merit-cost">35 Merits</div>
+                </div>
+                <button class="btn-success w-full text-sm" onclick="buyMeritItem('Gold Multiplier', 35, 'goldBoost', 1)">Purchase</button>
+            </div>
+
+            <div class="merit-shop-item">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <div class="font-bold text-green-300">⚔️ Combat Power</div>
+                        <div class="text-xs text-gray-400 mt-1">+2 All Stats for 1 hour</div>
+                    </div>
+                    <div class="merit-cost">40 Merits</div>
+                </div>
+                <button class="btn-success w-full text-sm" onclick="buyMeritItem('Combat Power', 40, 'combatPower', 1)">Purchase</button>
+            </div>
+        </div>
+
+        <!-- Purchased Items -->
+        <h3 class="text-yellow-400 font-bold text-lg mb-4">📦 Your Purchases</h3>
+        <div id="purchasedItemsModal" class="bg-gray-950 border-2 border-gray-800 rounded-lg p-4">
+            <div class="text-gray-400 text-sm">No items purchased yet</div>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        function loadUsers() {
+            try {
+                const savedUsers = JSON.parse(localStorage.getItem('users') || '{}');
+                if (!savedUsers || typeof savedUsers !== 'object' || Array.isArray(savedUsers)) return {};
+                return Object.fromEntries(Object.entries(savedUsers).filter(([, user]) => user && typeof user === 'object' && !Array.isArray(user)));
+            } catch (error) {
+                return {};
+            }
+        }
+
+        const gameState = {
+            currentUser: null,
+            currentCharacter: null,
+            characters: {},
+            users: loadUsers(),
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+            renderMarketItems();
+            gameState.currentUser = 'localPlayer';
+            gameState.users[gameState.currentUser] = gameState.users[gameState.currentUser] || { characters: {} };
+            const savedCharacters = gameState.users[gameState.currentUser].characters;
+            gameState.characters = savedCharacters && typeof savedCharacters === 'object' && !Array.isArray(savedCharacters) ? savedCharacters : {};
+            showCharacterSelection();
+            updateTime();
+            setInterval(updateTime, 1000);
+            setInterval(updateRestCooldown, 1000);
+        setInterval(updateRegenCountdowns, 1000);
+        });
+
+        function setupEventListeners() {
+            document.getElementById('loginBtn').addEventListener('click', login);
+            document.getElementById('registerBtn').addEventListener('click', register);
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+            document.getElementById('logoutGameBtn').addEventListener('click', logout);
+            document.getElementById('logoutAccBtn').addEventListener('click', logout);
+            document.getElementById('createCharBtn').addEventListener('click', openCreateChar);
+            document.getElementById('cancelCreateCharBtn').addEventListener('click', closeCreateChar);
+            document.getElementById('characterCreationForm').addEventListener('submit', createCharacter);
+            document.getElementById('beginAdventureBtn').addEventListener('click', closeWelcomeModal);
+            document.getElementById('playerMeritsContainer').addEventListener('click', () => {
+                showMeritShop();
+            });
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && meritShopModal.classList.contains('show')) {
+                    hideMeritShop();
+                }
+            });
+        }
+
+        function toggleAuthForm() {
+            document.getElementById('loginForm').classList.toggle('hidden');
+            document.getElementById('registerForm').classList.toggle('hidden');
+            document.getElementById('loginError').classList.add('hidden');
+            document.getElementById('registerError').classList.add('hidden');
+        }
+
+        function login() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            const errorDiv = document.getElementById('loginError');
+
+            if (!username || !password) {
+                showError(errorDiv, 'Please fill in all fields');
+                return;
+            }
+
+            if (!gameState.users[username] || gameState.users[username].password !== password) {
+                showError(errorDiv, 'Invalid username or password');
+                return;
+            }
+
+            gameState.currentUser = username;
+            const savedCharacters = gameState.users[username].characters;
+            gameState.characters = savedCharacters && typeof savedCharacters === 'object' && !Array.isArray(savedCharacters) ? savedCharacters : {};
+            showCharacterSelection();
+        }
+
+        function register() {
+            const username = document.getElementById('registerUsername').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirm = document.getElementById('registerConfirm').value;
+            const errorDiv = document.getElementById('registerError');
+
+            if (!username || !password || !confirm) {
+                showError(errorDiv, 'Please fill in all fields');
+                return;
+            }
+
+            if (password !== confirm) {
+                showError(errorDiv, 'Passwords do not match');
+                return;
+            }
+
+            if (gameState.users[username]) {
+                showError(errorDiv, 'Username already exists');
+                return;
+            }
+
+            gameState.users[username] = { password, characters: {} };
+            localStorage.setItem('users', JSON.stringify(gameState.users));
+            showNotification('Account created! Please login.');
+            toggleAuthForm();
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
+        }
+
+        function showCharacterSelection() {
+            document.getElementById('authContainer').classList.add('hidden');
+            document.getElementById('charSelectContainer').classList.remove('hidden');
+            refreshCharacterList();
+        }
+
+        function refreshCharacterList() {
+            const charGrid = document.getElementById('charGrid');
+            const characterNames = Object.keys(gameState.characters);
+            charGrid.innerHTML = '';
+            document.getElementById('characterSaveCount').textContent = `${characterNames.length} ${characterNames.length === 1 ? 'save' : 'saves'}`;
+
+            if (characterNames.length === 0) {
+                const emptyState = document.createElement('div');
+                emptyState.className = 'save-empty';
+                emptyState.textContent = 'No saved characters yet. Create your first hero to start your adventure.';
+                charGrid.appendChild(emptyState);
+                return;
+            }
+
+            characterNames.forEach((charName) => {
+                const char = normalizeCharacter(gameState.characters[charName], charName);
+                if (!char) return;
+                const card = document.createElement('article');
+                card.className = 'character-card';
+
+                const name = document.createElement('h3');
+                name.textContent = char.name || charName;
+                const details = document.createElement('div');
+                details.className = 'text-xs text-gray-400';
+                details.textContent = `${char.race || 'Human'} ${char.class || 'Warrior'}`;
+                const level = document.createElement('div');
+                level.className = 'text-sm text-yellow-400 mt-2';
+                level.textContent = `Level ${char.level || 1} · ${Number(char.gold) || 0} gold`;
+                const actions = document.createElement('div');
+                actions.className = 'character-card-actions';
+
+                const playButton = document.createElement('button');
+                playButton.type = 'button';
+                playButton.className = 'btn-primary';
+                playButton.textContent = 'Play';
+                playButton.addEventListener('click', () => selectCharacter(charName));
+
+                const deleteButton = document.createElement('button');
+                deleteButton.type = 'button';
+                deleteButton.className = 'btn-danger';
+                deleteButton.textContent = 'Delete';
+                deleteButton.setAttribute('aria-label', `Delete ${char.name || charName}`);
+                deleteButton.addEventListener('click', () => deleteSavedCharacter(charName));
+
+                actions.append(playButton, deleteButton);
+                card.append(name, details, level, actions);
+                charGrid.appendChild(card);
+            });
+        }
+
+        function openCreateChar() {
+            const form = document.getElementById('characterCreationForm');
+            form.classList.remove('hidden');
+            document.getElementById('characterCreationError').classList.add('hidden');
+            document.getElementById('newCharacterName').focus();
+            document.getElementById('createCharBtn').classList.add('hidden');
+        }
+
+        function closeCreateChar() {
+            document.getElementById('characterCreationForm').reset();
+            document.getElementById('characterCreationForm').classList.add('hidden');
+            document.getElementById('characterCreationError').classList.add('hidden');
+            document.getElementById('createCharBtn').classList.remove('hidden');
+        }
+
+        function createCharacter(event) {
+            event.preventDefault();
+            const nameInput = document.getElementById('newCharacterName');
+            const charName = nameInput.value.trim();
+            const errorDiv = document.getElementById('characterCreationError');
+
+            if (!charName) {
+                showError(errorDiv, 'Please enter a character name.');
+                return;
+            }
+
+            const duplicate = Object.keys(gameState.characters).some((name) => name.toLowerCase() === charName.toLowerCase());
+            if (duplicate) {
+                showError(errorDiv, 'A character with that name already exists.');
+                return;
+            }
+
+            const race = document.getElementById('newCharacterRace').value;
+            const charClass = document.getElementById('newCharacterClass').value;
+            gameState.characters[charName] = {
+                name: charName,
+                race: race,
+                class: charClass,
+                level: 1,
+                exp: 0,
+                hp: 100,
+                maxHp: 100,
+                energy: 100,
+                maxEnergy: 100,
+                glory: 100,
+                maxGlory: 100,
+                gold: 1000,
+                merits: 50,
+                jewels: 0,
+                stats: { str: 15, def: 12, spd: 10, eva: 8 },
+                inventory: [],
+                meritPurchases: [],
+                introSeen: false,
+                nextRestAt: 0,
+                lastRegenAt: Date.now(),
+                createdAt: new Date().toLocaleDateString(),
+            };
+
+            saveCharacters();
+            closeCreateChar();
+            selectCharacter(charName);
+            showNotification(`${charName} created and saved!`);
+        }
+
+        function saveCharacters() {
+            gameState.users[gameState.currentUser] = gameState.users[gameState.currentUser] || { characters: {} };
+            gameState.users[gameState.currentUser].characters = gameState.characters;
+            localStorage.setItem('users', JSON.stringify(gameState.users));
+        }
+
+        function deleteSavedCharacter(charName) {
+            if (!gameState.characters[charName]) return;
+            if (!confirm(`Delete ${charName}? This save cannot be recovered.`)) return;
+            delete gameState.characters[charName];
+            saveCharacters();
+            refreshCharacterList();
+            showNotification(`${charName} deleted.`);
+        }
+
+        function normalizeCharacter(char, fallbackName) {
+            if (!char || typeof char !== 'object' || Array.isArray(char)) return null;
+            const defaults = {
+                level: 1, exp: 0, hp: 100, maxHp: 100, energy: 100, maxEnergy: 100,
+                glory: 100, maxGlory: 100, gold: 1000, merits: 50, jewels: 0
+            };
+            Object.entries(defaults).forEach(([key, value]) => {
+                const number = Number(char[key]);
+                char[key] = Number.isFinite(number) ? number : value;
+            });
+            char.level = Math.max(1, Math.floor(char.level));
+            char.exp = Math.max(0, char.exp);
+            char.maxHp = Math.max(1, char.maxHp);
+            char.maxEnergy = Math.max(1, char.maxEnergy);
+            char.maxGlory = Math.max(1, char.maxGlory);
+            char.hp = Math.min(char.maxHp, Math.max(0, char.hp));
+            char.energy = Math.min(char.maxEnergy, Math.max(0, char.energy));
+            char.glory = Math.min(char.maxGlory, Math.max(0, char.glory));
+            char.gold = Math.max(0, char.gold);
+            char.merits = Math.max(0, char.merits);
+            char.jewels = Math.max(0, char.jewels);
+            char.name = typeof char.name === 'string' && char.name.trim() ? char.name : fallbackName;
+            char.race = typeof char.race === 'string' ? char.race : 'Human';
+            char.class = typeof char.class === 'string' ? char.class : 'Warrior';
+            char.stats = char.stats && typeof char.stats === 'object' && !Array.isArray(char.stats) ? char.stats : {};
+            [['str', 15], ['def', 12], ['spd', 10], ['eva', 8]].forEach(([key, value]) => {
+                const number = Number(char.stats[key]);
+                char.stats[key] = Number.isFinite(number) ? Math.max(0, number) : value;
+            });
+            if (!Array.isArray(char.inventory)) char.inventory = [];
+            if (!Array.isArray(char.meritPurchases)) char.meritPurchases = [];
+            if (!Number.isFinite(Number(char.lastRegenAt)) || Number(char.lastRegenAt) <= 0) char.lastRegenAt = Date.now();
+            if (!Number.isFinite(Number(char.nextRestAt))) char.nextRestAt = 0;
+            if (!char.createdAt) char.createdAt = new Date().toLocaleDateString();
+            return char;
+        }
+
+        function selectCharacter(charName) {
+            combatActive = false;
+            combatTurnPending = false;
+            activeDungeon = null;
+            document.getElementById('combatArea').classList.add('hidden');
+            document.getElementById('dungeonBattle').classList.add('hidden');
+            document.getElementById('dungeonRooms').classList.remove('hidden');
+            gameState.currentCharacter = normalizeCharacter(gameState.characters[charName], charName);
+            if (!gameState.currentCharacter) {
+                delete gameState.characters[charName];
+                saveCharacters();
+                refreshCharacterList();
+                showNotification('That character save could not be loaded.');
+                return;
+            }
+            switchTab('home');
+            regenerateStats(false);
+            document.getElementById('charSelectContainer').classList.add('hidden');
+            document.getElementById('gameContainer').classList.remove('hidden');
+            loadCharacterUI();
+            if (gameState.currentCharacter.introSeen === false) {
+                document.getElementById('welcomeModal').classList.remove('hidden');
+            }
+        }
+
+        function closeWelcomeModal() {
+            document.getElementById('welcomeModal').classList.add('hidden');
+            if (gameState.currentCharacter) {
+                gameState.currentCharacter.introSeen = true;
+                saveCharacters();
+            }
+        }
+
+        function getMetaStats() {
+            const char = gameState.currentCharacter;
+            if (!char) return null;
+            const defaults = {
+                combatWins: 0, combatLosses: 0, damageDealt: 0, damageTaken: 0,
+                dungeonAttempts: 0, dungeonClears: 0, dungeonDefeats: 0,
+                trainingSessions: 0, questsCompleted: 0, itemsPurchased: 0,
+                potionsUsed: 0, goldEarned: 0, goldSpent: 0, expEarned: 0,
+                peakLevel: Number(char.level) || 1, floorClears: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }
+            };
+            if (!char.metaStats || typeof char.metaStats !== 'object') char.metaStats = {};
+            Object.entries(defaults).forEach(([key, value]) => {
+                if (char.metaStats[key] === undefined || char.metaStats[key] === null) {
+                    char.metaStats[key] = value;
+                }
+            });
+            if (!char.metaStats.floorClears || typeof char.metaStats.floorClears !== 'object') {
+                char.metaStats.floorClears = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+            }
+            [1, 2, 3, 4, 5, 6].forEach((floor) => {
+                char.metaStats.floorClears[floor] = Number(char.metaStats.floorClears[floor]) || 0;
+            });
+            Object.keys(defaults).filter((key) => key !== 'floorClears').forEach((key) => {
+                char.metaStats[key] = Math.max(0, Number(char.metaStats[key]) || 0);
+            });
+            char.metaStats.peakLevel = Math.max(char.metaStats.peakLevel, Number(char.level) || 1);
+            return char.metaStats;
+        }
+
+        function renderMetaStats() {
+            const meta = getMetaStats();
+            if (!meta) return;
+            const values = {
+                metaCombatWins: meta.combatWins,
+                metaCombatLosses: meta.combatLosses,
+                metaDamageDealt: meta.damageDealt,
+                metaDamageTaken: meta.damageTaken,
+                metaDungeonClears: meta.dungeonClears,
+                metaDungeonAttempts: meta.dungeonAttempts,
+                metaDungeonDefeats: meta.dungeonDefeats,
+                metaTrainingSessions: meta.trainingSessions,
+                metaQuestsCompleted: meta.questsCompleted,
+                metaItemsPurchased: meta.itemsPurchased,
+                metaPotionsUsed: meta.potionsUsed,
+                metaGoldEarned: meta.goldEarned,
+                metaGoldSpent: meta.goldSpent,
+                metaExpEarned: meta.expEarned,
+                metaPeakLevel: meta.peakLevel,
+                metaFloor1Clears: meta.floorClears[1],
+                metaFloor2Clears: meta.floorClears[2],
+                metaFloor3Clears: meta.floorClears[3],
+                metaFloor4Clears: meta.floorClears[4],
+                metaFloor5Clears: meta.floorClears[5],
+                metaFloor6Clears: meta.floorClears[6]
+            };
+            Object.entries(values).forEach(([id, value]) => {
+                const element = document.getElementById(id);
+                if (element) element.textContent = Number(value).toLocaleString();
+            });
+            const winRate = meta.combatWins + meta.combatLosses
+                ? `${Math.round((meta.combatWins / (meta.combatWins + meta.combatLosses)) * 100)}%`
+                : '—';
+            const dungeonRate = meta.dungeonAttempts
+                ? `${Math.round((meta.dungeonClears / meta.dungeonAttempts) * 100)}%`
+                : '—';
+            document.getElementById('metaCombatWinRate').textContent = winRate;
+            document.getElementById('metaDungeonClearRate').textContent = dungeonRate;
+        }
+
+        function loadCharacterUI() {
+            const char = gameState.currentCharacter;
+            if (!char) return;
+            saveCharacters();
+            renderMarketItems();
+            document.getElementById('charInfo').textContent = `${char.name} • ${char.race} ${char.class}`;
+            document.getElementById('charName').textContent = char.name;
+            document.getElementById('charRace').textContent = char.race;
+            document.getElementById('charClass').textContent = char.class;
+            document.getElementById('playerLevel').textContent = char.level;
+            document.getElementById('playerGold').textContent = char.gold;
+            document.getElementById('playerHP').textContent = char.hp;
+            document.getElementById('maxHP').textContent = char.maxHp;
+            document.getElementById('playerEnergy').textContent = char.energy;
+            document.getElementById('maxEnergy').textContent = char.maxEnergy;
+            document.getElementById('playerGlory').textContent = char.glory;
+            document.getElementById('maxGlory').textContent = char.maxGlory;
+            document.getElementById('playerMerits').textContent = char.merits;
+            document.getElementById('playerJewels').textContent = char.jewels;
+            document.getElementById('meritShopBalanceModal').textContent = char.merits;
+            document.getElementById('charExp').textContent = char.exp;
+            document.getElementById('expNext').textContent = char.level * 500;
+            document.getElementById('statStr').textContent = char.stats.str;
+            document.getElementById('statDef').textContent = char.stats.def;
+            document.getElementById('statSpd').textContent = char.stats.spd;
+            document.getElementById('statEva').textContent = char.stats.eva;
+            document.getElementById('statsStr').textContent = char.stats.str;
+            document.getElementById('statsDef').textContent = char.stats.def;
+            document.getElementById('statsSpd').textContent = char.stats.spd;
+            document.getElementById('statsEva').textContent = char.stats.eva;
+            document.getElementById('trainingStatStr').textContent = char.stats.str;
+            document.getElementById('trainingStatDef').textContent = char.stats.def;
+            document.getElementById('trainingStatSpd').textContent = char.stats.spd;
+            document.getElementById('trainingStatEva').textContent = char.stats.eva;
+            document.getElementById('memberSince').textContent = char.createdAt;
+
+            updateMeritPurchases();
+            updateMeritPurchasesModal();
+            updateBars();
+            updateRestCooldown();
+            updateRegenCountdowns();
+            renderQuests();
+            renderRankQuests();
+
+            renderInventory();
+            renderMetaStats();
+        }
+
+        function renderInventory() {
+            const char = gameState.currentCharacter;
+            const inventoryList = document.getElementById('inventoryList');
+            const inventoryCount = document.getElementById('inventoryCount');
+            if (!char || !inventoryList) return;
+
+            const items = Array.isArray(char.inventory) ? char.inventory : [];
+            inventoryCount.innerHTML = `<strong>${items.length}</strong> ${items.length === 1 ? 'item' : 'items'}`;
+            inventoryList.replaceChildren();
+
+            if (items.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'inventory-empty';
+                empty.innerHTML = '<div class="inventory-empty-icon" aria-hidden="true">🧭</div><div class="font-bold text-gray-300">Your pack is empty</div><p class="text-sm text-gray-400 mt-1">Buy gear at the Market or explore a dungeon to find items.</p>';
+                inventoryList.appendChild(empty);
+                return;
+            }
+
+            const stackedItems = new Map();
+            items.forEach((storedItem, itemIndex) => {
+                const itemName = String(storedItem).replace(/ \(\+[\d,]+ gold\)$/, '');
+                const key = itemName.toLowerCase();
+                if (!stackedItems.has(key)) {
+                    stackedItems.set(key, { itemName, count: 0, firstIndex: itemIndex });
+                }
+                stackedItems.get(key).count += 1;
+            });
+
+            stackedItems.forEach(({ itemName, count, firstIndex }) => {
+                const gear = marketCatalog.find((item) => itemName === item.name);
+                const card = document.createElement('article');
+                card.className = 'inventory-card';
+                const icon = document.createElement('div');
+                icon.className = 'inventory-icon';
+                icon.setAttribute('aria-hidden', 'true');
+                icon.textContent = gear ? gear.icon : (itemName.includes('Wyrm') ? '🐉' : itemName.includes('Crypt') ? '🦴' : '✨');
+                const details = document.createElement('div');
+                details.className = 'inventory-item-details';
+                const name = document.createElement('div');
+                name.className = 'inventory-item-name';
+                name.textContent = itemName;
+                if (count > 1) {
+                    const quantity = document.createElement('span');
+                    quantity.className = 'inventory-item-quantity';
+                    quantity.textContent = `×${count}`;
+                    quantity.setAttribute('aria-label', `Quantity: ${count}`);
+                    name.appendChild(quantity);
+                }
+                const type = document.createElement('span');
+                type.className = 'inventory-item-type';
+                type.textContent = gear ? (gear.type === 'consumable' ? `${gear.category} · consumable` : `${gear.category || 'Market gear'} · bonus applied`) : 'Dungeon find';
+                details.append(name, type);
+
+                if (gear?.type === 'consumable') {
+                    const useButton = document.createElement('button');
+                    useButton.type = 'button';
+                    useButton.className = 'btn-success text-sm mt-3';
+                    useButton.textContent = 'Use';
+                    useButton.title = gear.description;
+                    useButton.addEventListener('click', () => useInventoryItem(firstIndex));
+                    details.appendChild(useButton);
+                } else if (gear) {
+                    const bonus = document.createElement('div');
+                    bonus.className = 'inventory-item-bonus';
+                    bonus.textContent = gear.stats
+                        ? Object.entries(gear.stats).map(([stat, value]) => `+${value} ${stat.toUpperCase()}`).join(' · ')
+                        : `+${gear.bonus} ${gear.stat === 'maxHp' ? 'Max HP' : gear.stat.toUpperCase()}`;
+                    details.appendChild(bonus);
+                }
+
+                card.append(icon, details);
+                inventoryList.appendChild(card);
+            });
+        }
+
+        function updateMeritPurchases() {
+            const char = gameState.currentCharacter;
+            const container = document.getElementById('purchasedItems');
+
+            if (!char.meritPurchases || char.meritPurchases.length === 0) {
+                container.innerHTML = '<div class="text-gray-400 text-sm">No items purchased yet</div>';
+                return;
+            }
+
+            container.innerHTML = char.meritPurchases
+                .map(
+                    (item) => `
+                <div class="stat-boost-item">
+                    <div class="flex justify-between items-center">
+                        <span>${item.name}</span>
+                        <span class="text-xs text-green-400">✓ Applied</span>
+                    </div>
+                </div>
+            `
+                )
+                .join('');
+        }
+
+        function updateMeritPurchasesModal() {
+            const char = gameState.currentCharacter;
+            const container = document.getElementById('purchasedItemsModal');
+            if (!container) return;
+
+            if (!char.meritPurchases || char.meritPurchases.length === 0) {
+                container.innerHTML = '<div class="text-gray-400 text-sm">No items purchased yet</div>';
+                return;
+            }
+
+            container.innerHTML = char.meritPurchases
+                .map(
+                    (item) => `
+                <div class="stat-boost-item">
+                    <div class="flex justify-between items-center">
+                        <span>${item.name}</span>
+                        <span class="text-xs text-green-400">✓ Applied</span>
+                    </div>
+                </div>
+            `
+                )
+                .join('');
+        }
+
+        function hasActiveBoost(type) {
+            const char = gameState.currentCharacter;
+            return Boolean(char && Number(char.boosts?.[type]) > Date.now());
+        }
+
+        function getEffectiveStat(stat) {
+            const base = Number(gameState.currentCharacter?.stats?.[stat]) || 0;
+            return base + (hasActiveBoost('combatPower') ? 2 : 0);
+        }
+
+        function applyGoldBoost(amount) {
+            return Math.floor(amount * (hasActiveBoost('goldBoost') ? 1.5 : 1));
+        }
+
+        function buyMeritItem(itemName, cost, statType, value) {
+            const char = gameState.currentCharacter;
+            if (!char) return;
+
+            if (char.merits < cost) {
+                showNotification('Not enough merits!');
+                return;
+            }
+
+            char.merits -= cost;
+
+            // Apply the boost
+            if (statType === 'str' || statType === 'def' || statType === 'spd' || statType === 'eva') {
+                char.stats[statType] += value;
+            } else if (statType === 'maxHp') {
+                char.maxHp += value;
+                char.hp = char.maxHp;
+            } else if (statType === 'maxEnergy') {
+                char.maxEnergy += value;
+                char.energy = char.maxEnergy;
+            } else if (statType === 'jewels') {
+                char.jewels += value;
+            } else if (['expBoost', 'goldBoost', 'combatPower'].includes(statType)) {
+                char.boosts = char.boosts && typeof char.boosts === 'object' ? char.boosts : {};
+                char.boosts[statType] = Math.max(Date.now(), Number(char.boosts[statType]) || 0) + 60 * 60 * 1000;
+            }
+
+            // Track purchase
+            if (!char.meritPurchases) {
+                char.meritPurchases = [];
+            }
+            char.meritPurchases.push({ name: itemName, cost: cost });
+
+            // Save to localStorage
+            gameState.users[gameState.currentUser].characters = gameState.characters;
+            localStorage.setItem('users', JSON.stringify(gameState.users));
+
+            loadCharacterUI();
+            showNotification(`✨ ${itemName} purchased for ${cost} merits!`);
+        }
+
+        function updateBars() {
+            const char = gameState.currentCharacter;
+            document.getElementById('hpBar').style.width = (char.hp / char.maxHp) * 100 + '%';
+            document.getElementById('energyBar').style.width = (char.energy / char.maxEnergy) * 100 + '%';
+            document.getElementById('gloryBar').style.width = (char.glory / char.maxGlory) * 100 + '%';
+            document.getElementById('expBar').style.width = (char.exp / (char.level * 500)) * 100 + '%';
+        }
+
+        function toggleGameGuide() {
+            const guide = document.getElementById('gameGuide');
+            const button = document.getElementById('gameGuideBtn');
+            const isOpening = guide.classList.contains('hidden');
+            guide.classList.toggle('hidden', !isOpening);
+            button.setAttribute('aria-expanded', String(isOpening));
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach((tab) => tab.classList.add('hidden'));
+            document.querySelectorAll('.tab-button').forEach((btn) => btn.classList.remove('active'));
+            document.getElementById(tabName + 'Tab').classList.remove('hidden');
+            const btn = document.querySelector(`[data-tab="${tabName}"]`);
+            if (btn) btn.classList.add('active');
+        }
+
+        const storyQuests = [
+            {
+                title: 'A Light in the Ruins',
+                chapter: 'Chapter I · The First Signal',
+                story: 'A broken beacon flickers above Haven. The village scout asks you to prove the shadow-creatures can be driven back.',
+                objective: 'Win one combat', event: 'combatVictory', target: 1,
+                gold: 150, exp: 100, merits: 5
+            },
+            {
+                title: 'Steel for the Road',
+                chapter: 'Chapter II · The Scout’s Lesson',
+                story: 'The scout marks an old trail on your map. Before you follow it, sharpen your skills at the training grounds.',
+                objective: 'Train any stat once', event: 'training', target: 1,
+                gold: 180, exp: 120, merits: 5
+            },
+            {
+                title: 'Supplies at Sundown',
+                chapter: 'Chapter III · A Merchant’s Warning',
+                story: 'A traveling merchant saw strange lights near the crypt. Buy a piece of gear before venturing into the dark.',
+                objective: 'Buy one market item', event: 'purchase', target: 1,
+                gold: 220, exp: 150, merits: 8
+            },
+            {
+                title: 'The Bell Beneath the Earth',
+                chapter: 'Chapter IV · Goblin Warren',
+                story: 'A bell rings from beneath the ruins. Search the first dungeon floor and bring back proof of what is waking below.',
+                objective: 'Explore Dungeon Floor 1', event: 'dungeon1', target: 1,
+                gold: 300, exp: 200, merits: 10
+            },
+            {
+                title: 'Whispers in the Crypt',
+                chapter: 'Chapter V · The Forgotten Dead',
+                story: 'The bell belonged to an ancient order. Its echo leads deeper underground, where the crypt guardians still stand watch.',
+                objective: 'Explore Dungeon Floor 2', event: 'dungeon2', target: 1,
+                gold: 450, exp: 300, merits: 12
+            },
+            {
+                title: 'Silence the Ashen Wyrm',
+                chapter: 'Chapter VI · The Dragon’s Lair',
+                story: 'The signal was a warning: an ashen wyrm has awakened. Defeat it and take the seal it guards; the seal points toward a drowned archive.',
+                objective: 'Explore Dungeon Floor 3', event: 'dungeon3', target: 1,
+                gold: 800, exp: 500, merits: 20
+            },
+            {
+                title: 'The Archive Below',
+                chapter: 'Chapter VII · Sunken Archive',
+                story: 'The wyrm’s seal opens a forgotten archive submerged beneath the lair. Recover the record that reveals who forged the signal.',
+                objective: 'Explore Dungeon Floor 4', event: 'dungeon4', target: 1,
+                gold: 1100, exp: 700, merits: 15
+            },
+            {
+                title: 'The Crownless Oath',
+                chapter: 'Chapter VIII · Hollow Crown',
+                story: 'The archive names the old king as the source of the corruption. His hollow court still guards the road to the rift.',
+                objective: 'Explore Dungeon Floor 5', event: 'dungeon5', target: 1,
+                gold: 1500, exp: 900, merits: 18
+            },
+            {
+                title: 'Heart of the Shadow',
+                chapter: 'Final Chapter · The Rift Heart',
+                story: 'Beyond the Hollow Regent lies the rift’s living heart. Destroy it to silence the signal and end the threat to Haven.',
+                objective: 'Explore Dungeon Floor 6', event: 'dungeon6', target: 1,
+                gold: 2200, exp: 1400, merits: 30
+            }
+        ];
+
+        const rankQuestTemplates = [
+            { id: 'combat', title: 'Proven in Battle', event: 'combatVictory', objective: (rank) => `Win ${rank + 2} combats` , target: (rank) => rank + 2 },
+            { id: 'training', title: 'Relentless Practice', event: 'training', objective: (rank) => `Complete ${rank} training sessions`, target: (rank) => rank },
+            { id: 'market', title: 'Supply the Expedition', event: 'purchase', objective: (rank) => `Purchase ${rank} market item${rank === 1 ? '' : 's'}`, target: (rank) => rank },
+            { id: 'dungeon', title: 'Delve Deeper', event: 'dungeonClear', objective: (rank) => `Clear ${rank} dungeon floor${rank === 1 ? '' : 's'}`, target: (rank) => rank },
+            { id: 'potions', title: 'Prepared for Anything', event: 'potionUsed', objective: (rank) => `Use ${rank} potion${rank === 1 ? '' : 's'}`, target: (rank) => rank },
+            { id: 'level', title: 'Reach New Heights', event: 'levelUp', objective: 'Gain 1 level', target: () => 1 }
+        ];
+
+        function getRankQuestProgress() {
+            const char = gameState.currentCharacter;
+            if (!char) return null;
+            if (!char.rankQuestProgress || typeof char.rankQuestProgress !== 'object') char.rankQuestProgress = {};
+            return char.rankQuestProgress;
+        }
+
+        function renderRankQuests() {
+            const list = document.getElementById('rankQuestsList');
+            const char = gameState.currentCharacter;
+            const progressByRank = getRankQuestProgress();
+            if (!list || !char || !progressByRank) return;
+            list.replaceChildren();
+
+            const currentRank = Math.max(1, Math.ceil((Number(char.level) || 1) / 10));
+            for (let rank = 1; rank <= currentRank; rank += 1) {
+                const tier = document.createElement('section');
+                tier.className = 'quest-card';
+                const title = document.createElement('h4');
+                title.className = 'font-bold text-yellow-400 mb-3';
+                title.textContent = `Rank ${rank} · Levels ${(rank - 1) * 10 + 1}–${rank * 10}`;
+                const questGrid = document.createElement('div');
+                questGrid.className = 'space-y-3';
+                const rankState = progressByRank[rank] && typeof progressByRank[rank] === 'object' ? progressByRank[rank] : (progressByRank[rank] = {});
+
+                rankQuestTemplates.forEach((quest) => {
+                    const state = rankState[quest.id] && typeof rankState[quest.id] === 'object'
+                        ? rankState[quest.id]
+                        : (rankState[quest.id] = { accepted: false, progress: 0, completed: false });
+                    state.progress = Math.max(0, Number(state.progress) || 0);
+                    const target = quest.target(rank);
+                    const card = document.createElement('article');
+                    card.className = 'quest-card';
+                    const heading = document.createElement('div');
+                    heading.className = 'font-bold text-yellow-400';
+                    heading.textContent = quest.title;
+                    const objective = document.createElement('div');
+                    objective.className = 'text-xs text-gray-400 mt-2';
+                    const reward = document.createElement('div');
+                    reward.className = 'text-xs text-green-400 mt-2';
+                    reward.textContent = `Reward: ${rank * 100} Gold · ${rank * 75} EXP · ${rank * 2} Merits`;
+                    card.append(heading);
+
+                    if (state.completed) {
+                        objective.textContent = '✓ Rank quest complete';
+                        card.append(objective, reward);
+                    } else {
+                        const button = document.createElement('button');
+                        button.type = 'button';
+                        button.className = state.accepted ? 'btn-primary mt-3' : 'btn-success mt-3';
+                        if (!state.accepted) {
+                            objective.textContent = `Objective: ${typeof quest.objective === 'function' ? quest.objective(rank) : quest.objective}`;
+                            button.textContent = 'Accept Quest';
+                            button.addEventListener('click', () => {
+                                state.accepted = true;
+                                state.progress = 0;
+                                saveCharacters();
+                                renderRankQuests();
+                            });
+                        } else if (state.progress >= target) {
+                            objective.textContent = `Objective complete: ${typeof quest.objective === 'function' ? quest.objective(rank) : quest.objective}`;
+                            button.textContent = 'Claim Rewards';
+                            button.addEventListener('click', () => claimRankQuest(rank, quest.id));
+                        } else {
+                            objective.textContent = `Progress: ${Math.min(state.progress, target)}/${target} — ${typeof quest.objective === 'function' ? quest.objective(rank) : quest.objective}`;
+                            button.textContent = 'In Progress';
+                            button.disabled = true;
+                        }
+                        card.append(objective, reward, button);
+                    }
+                    questGrid.appendChild(card);
+                });
+
+                tier.append(title, questGrid);
+                list.appendChild(tier);
+            }
+        }
+
+        function advanceRankQuests(eventName, amount = 1) {
+            const char = gameState.currentCharacter;
+            const progressByRank = getRankQuestProgress();
+            if (!char || !progressByRank) return;
+            const currentRank = Math.max(1, Math.ceil((Number(char.level) || 1) / 10));
+            let changed = false;
+            for (let rank = 1; rank <= currentRank; rank += 1) {
+                const rankState = progressByRank[rank];
+                if (!rankState) continue;
+                rankQuestTemplates.forEach((quest) => {
+                    const state = rankState[quest.id];
+                    if (quest.event === eventName && state?.accepted && !state.completed) {
+                        state.progress = Math.min(quest.target(rank), (Number(state.progress) || 0) + amount);
+                        changed = true;
+                    }
+                });
+            }
+            if (changed) {
+                saveCharacters();
+                renderRankQuests();
+            }
+        }
+
+        function claimRankQuest(rank, questId) {
+            const char = gameState.currentCharacter;
+            const quest = rankQuestTemplates.find((entry) => entry.id === questId);
+            const progressByRank = getRankQuestProgress();
+            const state = progressByRank?.[rank]?.[questId];
+            if (!char || !quest || !state?.accepted || state.completed || state.progress < quest.target(rank)) return;
+
+            state.completed = true;
+            state.accepted = false;
+            const goldReward = applyGoldBoost(rank * 100);
+            char.gold += goldReward;
+            char.merits += rank * 2;
+            const meta = getMetaStats();
+            if (meta) {
+                meta.goldEarned += goldReward;
+                meta.questsCompleted += 1;
+            }
+            const expReward = awardExperience(rank * 75);
+            saveCharacters();
+            loadCharacterUI();
+            showNotification(`Rank ${rank} quest complete! +${goldReward} gold, ${expReward} EXP, and ${rank * 2} merits.`);
+        }
+
+        function getQuestState() {
+            const char = gameState.currentCharacter;
+            if (!char) return null;
+            if (!char.questState || typeof char.questState !== 'object') {
+                char.questState = { stage: 0, accepted: false, progress: 0 };
+            }
+            char.questState.stage = Math.min(Math.max(0, Number(char.questState.stage) || 0), storyQuests.length);
+            char.questState.progress = Math.max(0, Number(char.questState.progress) || 0);
+            return char.questState;
+        }
+
+        function renderQuests() {
+            const list = document.getElementById('questsList');
+            const state = getQuestState();
+            if (!list || !state) return;
+            list.replaceChildren();
+
+            storyQuests.forEach((quest, index) => {
+                const card = document.createElement('article');
+                card.className = 'quest-card';
+                const heading = document.createElement('div');
+                heading.className = 'font-bold text-yellow-400';
+                heading.textContent = `${quest.chapter} — ${quest.title}`;
+                const story = document.createElement('p');
+                story.className = 'text-sm text-gray-300 mt-2';
+                story.textContent = quest.story;
+                const objective = document.createElement('div');
+                objective.className = 'text-xs text-gray-400 mt-3';
+                const reward = document.createElement('div');
+                reward.className = 'text-xs text-green-400 mt-2';
+                reward.textContent = `Reward: ${quest.gold} Gold · ${quest.exp} EXP · ${quest.merits} Merits`;
+                card.append(heading, story);
+
+                if (index < state.stage) {
+                    objective.textContent = '✓ Chapter complete';
+                    card.append(objective, reward);
+                } else if (index > state.stage) {
+                    objective.textContent = '🔒 Complete the previous chapter to unlock this quest.';
+                    card.append(objective);
+                } else {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = state.accepted ? 'btn-primary mt-3' : 'btn-success mt-3';
+                    if (!state.accepted) {
+                        objective.textContent = `Objective: ${quest.objective}`;
+                        button.textContent = 'Accept Quest';
+                        button.addEventListener('click', () => {
+                            state.accepted = true;
+                            state.progress = 0;
+                            saveCharacters();
+                            renderQuests();
+                            showNotification(`Quest accepted: ${quest.title}`);
+                        });
+                    } else if (state.progress >= quest.target) {
+                        objective.textContent = `Objective complete: ${quest.objective}`;
+                        button.textContent = 'Claim Rewards';
+                        button.addEventListener('click', () => claimStoryQuest(index));
+                    } else {
+                        objective.textContent = `Progress: ${Math.min(state.progress, quest.target)}/${quest.target} — ${quest.objective}`;
+                        button.textContent = 'In Progress';
+                        button.disabled = true;
+                    }
+                    card.append(objective, reward, button);
+                }
+                list.appendChild(card);
+            });
+
+            if (state.stage >= storyQuests.length) {
+                const ending = document.createElement('div');
+                ending.className = 'quest-card';
+                ending.textContent = '🏆 Haven is safe—for now. The complete story is recorded in your journal.';
+                list.appendChild(ending);
+            }
+        }
+
+        function advanceStoryQuest(eventName) {
+            const state = getQuestState();
+            if (!state || !state.accepted || state.stage >= storyQuests.length) return;
+            const quest = storyQuests[state.stage];
+            if (quest.event !== eventName || state.progress >= quest.target) return;
+            state.progress = Math.min(quest.target, state.progress + 1);
+            saveCharacters();
+            renderQuests();
+            if (state.progress >= quest.target) showNotification(`Objective complete: ${quest.title}. Return to Quests to claim your reward.`);
+        }
+
+        function awardExperience(baseAmount) {
+            const char = gameState.currentCharacter;
+            if (!char) return;
+            const amount = Math.floor(baseAmount * (hasActiveBoost('expBoost') ? 1.25 : 1));
+            char.exp = (Number(char.exp) || 0) + amount;
+            const meta = getMetaStats();
+            if (meta) meta.expEarned += amount;
+            let levelsGained = 0;
+            while (char.exp >= char.level * 500) {
+                char.exp -= char.level * 500;
+                char.level += 1;
+                char.maxHp += 10;
+                char.hp = char.maxHp;
+                char.maxEnergy += 5;
+                char.energy = char.maxEnergy;
+                levelsGained += 1;
+            }
+            if (meta) meta.peakLevel = Math.max(meta.peakLevel, Number(char.level) || 1);
+            if (levelsGained) {
+                advanceRankQuests('levelUp', levelsGained);
+                showNotification(`Level up! You reached level ${char.level}.`);
+            }
+            return amount;
+        }
+
+        function claimStoryQuest(index) {
+            const char = gameState.currentCharacter;
+            const state = getQuestState();
+            const quest = storyQuests[index];
+            if (!char || !state || index !== state.stage || !state.accepted || state.progress < quest.target) return;
+            const goldReward = applyGoldBoost(quest.gold);
+            char.gold += goldReward;
+            const meta = getMetaStats();
+            if (meta) {
+                meta.goldEarned += goldReward;
+                meta.questsCompleted += 1;
+            }
+            const expReward = awardExperience(quest.exp);
+            char.merits += quest.merits;
+            state.stage += 1;
+            state.accepted = false;
+            state.progress = 0;
+            saveCharacters();
+            loadCharacterUI();
+            showNotification(`Chapter complete! +${goldReward} gold, ${expReward} EXP, and ${quest.merits} merits.`);
+        }
+
+        let combatActive = false;
+        let combatTurnPending = false;
+        let combatEnemyMaxHP = 80;
+        let combatEnemyDamageBonus = 0;
+
+        function startCombat() {
+            const char = gameState.currentCharacter;
+            if (!char || combatActive) return;
+            if (activeDungeon) {
+                showNotification('Finish or leave your dungeon encounter before starting combat.');
+                return;
+            }
+            if (char.hp <= 0) {
+                showNotification('Recover your health before starting combat.');
+                return;
+            }
+            if (char.energy < 15) {
+                showNotification('Not enough energy!');
+                return;
+            }
+            char.energy = Math.max(0, char.energy - 15);
+            const level = Math.max(1, Number(char.level) || 1);
+            const stats = char.stats || {};
+            const statPower = Math.floor(Math.max(0, getEffectiveStat('str') - 15) / 5)
+                + Math.floor(Math.max(0, getEffectiveStat('def') - 12) / 8)
+                + Math.floor(Math.max(0, (Number(stats.spd) || 10) + (hasActiveBoost('combatPower') ? 2 : 0) - 10) / 10)
+                + Math.floor(Math.max(0, (Number(stats.eva) || 8) + (hasActiveBoost('combatPower') ? 2 : 0) - 8) / 10);
+            const difficulty = level - 1 + statPower;
+            combatEnemyMaxHP = 80 + difficulty * 11;
+            combatEnemyDamageBonus = Math.floor(difficulty * 1.4);
+            combatActive = true;
+            combatTurnPending = false;
+            saveCharacters();
+            document.getElementById('combatArea').classList.remove('hidden');
+            document.getElementById('playerCombatHP').textContent = char.hp;
+            document.getElementById('playerCombatMaxHP').textContent = char.maxHp;
+            document.getElementById('playerCombatHPBar').style.width = `${Math.max(0, (char.hp / char.maxHp) * 100)}%`;
+            document.getElementById('enemyName').textContent = `Shadow Stalker · Lv. ${level}`;
+            document.getElementById('enemyHP').textContent = combatEnemyMaxHP;
+            document.getElementById('enemyMaxHP').textContent = combatEnemyMaxHP;
+            document.getElementById('enemyHPBar').style.width = '100%';
+            document.getElementById('combatLog').innerHTML = '<div class="log-message info">Combat started! Choose your action.</div>';
+            updateBars();
+        }
+
+        function playerAttack() {
+            if (!combatActive || combatTurnPending) return;
+            combatTurnPending = true;
+            const char = gameState.currentCharacter;
+            const strengthBonus = Math.floor(Math.max(0, getEffectiveStat('str') - 15) / 4);
+            const damage = Math.floor(Math.random() * 20) + 10 + strengthBonus;
+            const enemyHP = parseInt(document.getElementById('enemyHP').textContent, 10);
+            const newEnemyHP = Math.max(0, enemyHP - damage);
+            getMetaStats().damageDealt += enemyHP - newEnemyHP;
+            renderMetaStats();
+            document.getElementById('enemyHP').textContent = newEnemyHP;
+            document.getElementById('enemyHPBar').style.width = (newEnemyHP / combatEnemyMaxHP) * 100 + '%';
+            addCombatLog(`You attack for ${damage} damage!`, 'success');
+
+            if (newEnemyHP <= 0) {
+                endCombat(true);
+                return;
+            }
+
+            setTimeout(() => enemyAttack(), 500);
+        }
+
+        function playerDefend() {
+            if (!combatActive || combatTurnPending) return;
+            combatTurnPending = true;
+            addCombatLog('You take a defensive stance!', 'info');
+            setTimeout(() => {
+                if (!combatActive) return;
+                const defense = getEffectiveStat('def') || 12;
+                const incomingDamage = Math.max(1, Math.floor(Math.random() * 15) + 5 + combatEnemyDamageBonus - Math.floor(Math.max(0, defense - 12) / 6));
+                const damage = Math.max(1, Math.floor(incomingDamage * 0.45));
+                const playerHP = parseInt(document.getElementById('playerCombatHP').textContent, 10);
+                const newPlayerHP = Math.max(0, playerHP - damage);
+                getMetaStats().damageTaken += playerHP - newPlayerHP;
+                renderMetaStats();
+                gameState.currentCharacter.hp = newPlayerHP;
+                document.getElementById('playerCombatHP').textContent = newPlayerHP;
+                document.getElementById('playerCombatHPBar').style.width = (newPlayerHP / gameState.currentCharacter.maxHp) * 100 + '%';
+                addCombatLog(`Enemy attacks! You take ${damage} damage.`, 'danger');
+                saveCharacters();
+
+                if (newPlayerHP <= 0) {
+                    endCombat(false);
+                } else {
+                    combatTurnPending = false;
+                }
+            }, 500);
+        }
+
+        function playerSkill() {
+            if (!combatActive || combatTurnPending) return;
+            combatTurnPending = true;
+            const char = gameState.currentCharacter;
+            const strengthBonus = Math.floor(Math.max(0, getEffectiveStat('str') - 15) / 4);
+            const damage = Math.floor(Math.random() * 35) + 20 + strengthBonus;
+            const enemyHP = parseInt(document.getElementById('enemyHP').textContent, 10);
+            const newEnemyHP = Math.max(0, enemyHP - damage);
+            getMetaStats().damageDealt += enemyHP - newEnemyHP;
+            renderMetaStats();
+            document.getElementById('enemyHP').textContent = newEnemyHP;
+            document.getElementById('enemyHPBar').style.width = (newEnemyHP / combatEnemyMaxHP) * 100 + '%';
+            addCombatLog(`You use special skill for ${damage} damage!`, 'success');
+
+            if (newEnemyHP <= 0) {
+                endCombat(true);
+                return;
+            }
+
+            setTimeout(() => enemyAttack(), 500);
+        }
+
+        function enemyAttack() {
+            if (!combatActive) return;
+            const char = gameState.currentCharacter;
+            const defense = getEffectiveStat('def') || 12;
+            const damage = Math.max(1, Math.floor(Math.random() * 15) + 5 + combatEnemyDamageBonus - Math.floor(Math.max(0, defense - 12) / 6));
+            const playerHP = parseInt(document.getElementById('playerCombatHP').textContent, 10);
+            const newPlayerHP = Math.max(0, playerHP - damage);
+            getMetaStats().damageTaken += playerHP - newPlayerHP;
+            renderMetaStats();
+            char.hp = newPlayerHP;
+            document.getElementById('playerCombatHP').textContent = newPlayerHP;
+            document.getElementById('playerCombatHPBar').style.width = (newPlayerHP / char.maxHp) * 100 + '%';
+            addCombatLog(`Enemy attacks for ${damage} damage!`, 'danger');
+            saveCharacters();
+
+            if (newPlayerHP <= 0) {
+                endCombat(false);
+            } else {
+                combatTurnPending = false;
+            }
+        }
+
+        function endCombat(won) {
+            if (!combatActive) return;
+            combatActive = false;
+            combatTurnPending = false;
+            const meta = getMetaStats();
+            if (won) {
+                meta.combatWins += 1;
+                const reward = applyGoldBoost(Math.floor(Math.random() * 200) + 100);
+                gameState.currentCharacter.gold += reward;
+                meta.goldEarned += reward;
+                const expReward = awardExperience(50);
+                advanceStoryQuest('combatVictory');
+                advanceRankQuests('combatVictory');
+                addCombatLog(`Victory! You earned ${reward} gold and ${expReward} EXP!`, 'success');
+                showNotification('Combat won!');
+            } else {
+                meta.combatLosses += 1;
+                gameState.currentCharacter.hp = gameState.currentCharacter.maxHp;
+                addCombatLog('Defeat! You were defeated...', 'danger');
+                showNotification('Combat lost!');
+            }
+            document.getElementById('combatArea').classList.add('hidden');
+            loadCharacterUI();
+        }
+
+        function addCombatLog(message, type = 'info') {
+            const log = document.getElementById('combatLog');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `log-message ${type}`;
+            msgDiv.textContent = message;
+            log.appendChild(msgDiv);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function startQuest() {
+            switchTab('quests');
+            const state = getQuestState();
+            if (state && !state.accepted) showNotification('Accept the next story quest in your journal to begin.');
+        }
+
+        const dungeonFloors = {
+            1: {
+                name: 'Goblin Warren', cost: 10, gold: 200, exp: 100, event: 'dungeon1',
+                enemies: [
+                    { name: 'Goblin Scout', hp: 38, attack: 7 },
+                    { name: 'Goblin Brute', hp: 52, attack: 9 },
+                    { name: 'Warren Chief', hp: 72, attack: 11 }
+                ]
+            },
+            2: {
+                name: 'Skeleton Crypt', cost: 20, gold: 400, exp: 250, event: 'dungeon2',
+                enemies: [
+                    { name: 'Crypt Boneguard', hp: 58, attack: 10 },
+                    { name: 'Grave Archer', hp: 72, attack: 12 },
+                    { name: 'Crypt Warden', hp: 96, attack: 14 }
+                ]
+            },
+            3: {
+                name: 'Dragon’s Lair', cost: 30, gold: 1000, exp: 500, event: 'dungeon3',
+                enemies: [
+                    { name: 'Ash Drake', hp: 82, attack: 13 },
+                    { name: 'Wyrm Guard', hp: 105, attack: 15 },
+                    { name: 'The Ashen Wyrm', hp: 145, attack: 18 }
+                ]
+            },
+            4: {
+                name: 'Sunken Archive', cost: 40, gold: 1400, exp: 700, event: 'dungeon4',
+                enemies: [
+                    { name: 'Drowned Scribe', hp: 125, attack: 19 },
+                    { name: 'Ink Horror', hp: 150, attack: 21 },
+                    { name: 'Archive Keeper', hp: 190, attack: 24 }
+                ]
+            },
+            5: {
+                name: 'Hollow Crown', cost: 50, gold: 2000, exp: 1000, event: 'dungeon5',
+                enemies: [
+                    { name: 'Crownless Knight', hp: 175, attack: 24 },
+                    { name: 'Court Shade', hp: 195, attack: 26 },
+                    { name: 'The Hollow Regent', hp: 240, attack: 30 }
+                ]
+            },
+            6: {
+                name: 'Rift Heart', cost: 60, gold: 3000, exp: 1500, event: 'dungeon6',
+                enemies: [
+                    { name: 'Rift Stalker', hp: 220, attack: 29 },
+                    { name: 'Void Herald', hp: 250, attack: 32 },
+                    { name: 'Heart of Shadow', hp: 320, attack: 36 }
+                ]
+            }
+        };
+        let activeDungeon = null;
+
+        function enterDungeon(floor) {
+            const char = gameState.currentCharacter;
+            const dungeon = dungeonFloors[floor];
+            if (!char || !dungeon || activeDungeon) return;
+            if (combatActive) {
+                showNotification('Finish combat before entering a dungeon.');
+                return;
+            }
+            const floorProgress = getMetaStats();
+            if (floor > 1 && floorProgress.floorClears[floor - 1] < 1) {
+                showNotification(`Clear Floor ${floor - 1} first to unlock ${dungeon.name}.`);
+                return;
+            }
+            if (char.energy < dungeon.cost) {
+                showNotification(`You need ${dungeon.cost} energy to enter this floor.`);
+                return;
+            }
+            if (char.hp <= 0) {
+                showNotification('Recover your health before entering a dungeon.');
+                return;
+            }
+
+            char.energy -= dungeon.cost;
+            getMetaStats().dungeonAttempts += 1;
+            activeDungeon = { floor, dungeon, wave: 0, enemy: null, guarding: false };
+            document.getElementById('dungeonRooms').classList.add('hidden');
+            document.getElementById('dungeonBattle').classList.remove('hidden');
+            document.getElementById('dungeonEncounterTitle').textContent = `Floor ${floor}: ${dungeon.name}`;
+            document.getElementById('dungeonCombatLog').replaceChildren();
+            dungeonLog(`You enter ${dungeon.name}. Three foes stand between you and the treasure.`);
+            loadCharacterUI();
+            setDungeonEnemy();
+            updateDungeonStatus(`Floor ${floor} underway — defeat all three enemies to secure the floor rewards.`);
+        }
+
+        function setDungeonEnemy() {
+            if (!activeDungeon) return;
+            activeDungeon.enemy = { ...activeDungeon.dungeon.enemies[activeDungeon.wave] };
+            const enemy = activeDungeon.enemy;
+            document.getElementById('dungeonWave').textContent = `Wave ${activeDungeon.wave + 1} of ${activeDungeon.dungeon.enemies.length}`;
+            document.getElementById('dungeonEnemyName').textContent = enemy.name;
+            document.getElementById('dungeonEnemyHP').textContent = enemy.hp;
+            document.getElementById('dungeonEnemyMaxHP').textContent = enemy.hp;
+            document.getElementById('dungeonEnemyHPBar').style.width = '100%';
+            updateDungeonPlayerDisplay();
+        }
+
+        function dungeonAction(action) {
+            const char = gameState.currentCharacter;
+            if (!activeDungeon || !char) return;
+
+            if (action === 'skill' && char.energy < 5) {
+                showNotification('Power Strike costs 5 energy.');
+                return;
+            }
+
+            if (action === 'defend') {
+                activeDungeon.guarding = true;
+                dungeonLog('You brace for the next blow, reducing the damage you take.');
+            } else {
+                const skill = action === 'skill';
+                if (skill) char.energy -= 5;
+                const strength = getEffectiveStat('str');
+                const damage = Math.max(1, Math.floor((strength + 8 + Math.random() * 10) * (skill ? 1.8 : 1)));
+                const actualDamage = Math.min(damage, activeDungeon.enemy.hp);
+                getMetaStats().damageDealt += actualDamage;
+                renderMetaStats();
+                activeDungeon.enemy.hp = Math.max(0, activeDungeon.enemy.hp - damage);
+                dungeonLog(`You ${skill ? 'unleash a Power Strike' : 'attack'} for ${damage} damage.`);
+                updateDungeonEnemyDisplay();
+
+                if (activeDungeon.enemy.hp <= 0) {
+                    dungeonLog(`${activeDungeon.enemy.name} falls!`);
+                    activeDungeon.wave += 1;
+                    if (activeDungeon.wave >= activeDungeon.dungeon.enemies.length) {
+                        completeDungeon();
+                        return;
+                    }
+                    setDungeonEnemy();
+                    dungeonLog(`${activeDungeon.enemy.name} blocks the path!`);
+                    saveCharacters();
+                    updateBars();
+                    return;
+                }
+            }
+
+            dungeonEnemyTurn();
+        }
+
+        function dungeonEnemyTurn() {
+            const char = gameState.currentCharacter;
+            if (!activeDungeon || !char) return;
+            const enemy = activeDungeon.enemy;
+            let damage = Math.max(1, Math.floor(enemy.attack + Math.random() * 5 - getEffectiveStat('def') * 0.25));
+            if (activeDungeon.guarding) damage = Math.max(1, Math.floor(damage * 0.45));
+            activeDungeon.guarding = false;
+            const previousHP = char.hp;
+            char.hp = Math.max(0, char.hp - damage);
+            getMetaStats().damageTaken += previousHP - char.hp;
+            renderMetaStats();
+            dungeonLog(`${enemy.name} strikes for ${damage} damage.`);
+            updateDungeonPlayerDisplay();
+            updateBars();
+            saveCharacters();
+
+            if (char.hp <= 0) {
+                loseDungeon();
+            }
+        }
+
+        function updateDungeonEnemyDisplay() {
+            if (!activeDungeon) return;
+            const enemy = activeDungeon.enemy;
+            document.getElementById('dungeonEnemyHP').textContent = enemy.hp;
+            document.getElementById('dungeonEnemyHPBar').style.width = `${(enemy.hp / activeDungeon.dungeon.enemies[activeDungeon.wave].hp) * 100}%`;
+        }
+
+        function updateDungeonPlayerDisplay() {
+            const char = gameState.currentCharacter;
+            if (!char) return;
+            document.getElementById('dungeonPlayerHP').textContent = char.hp;
+            document.getElementById('dungeonPlayerMaxHP').textContent = char.maxHp;
+            document.getElementById('dungeonPlayerHPBar').style.width = `${Math.max(0, (char.hp / char.maxHp) * 100)}%`;
+            document.getElementById('dungeonSkillBtn').disabled = char.energy < 5;
+        }
+
+        function dungeonLog(message) {
+            const log = document.getElementById('dungeonCombatLog');
+            const entry = document.createElement('div');
+            entry.className = 'log-message info';
+            entry.textContent = message;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function updateDungeonStatus(message) {
+            document.getElementById('dungeonStatus').textContent = message;
+        }
+
+        function completeDungeon() {
+            const char = gameState.currentCharacter;
+            const run = activeDungeon;
+            if (!char || !run) return;
+            char.inventory = Array.isArray(char.inventory) ? char.inventory : [];
+            const { floor, dungeon } = run;
+            const goldReward = applyGoldBoost(dungeon.gold);
+            char.gold += goldReward;
+            const meta = getMetaStats();
+            meta.dungeonClears += 1;
+            meta.floorClears[floor] += 1;
+            meta.goldEarned += goldReward;
+            const expReward = awardExperience(dungeon.exp);
+            advanceStoryQuest(dungeon.event);
+            advanceRankQuests('dungeonClear');
+
+            const drops = [];
+            if (Math.random() < 0.4) {
+                const loot = [
+                    'Goblin-forged Charm', 'Crypt Silver', 'Wyrmscale Fragment',
+                    'Drowned Archive Folio', 'Regent’s Signet', 'Riftglass Heart'
+                ][floor - 1];
+                char.inventory.push(loot);
+                drops.push(loot);
+            }
+            if (Math.random() < 0.15) {
+                char.merits += 5;
+                drops.push('5 bonus Merits');
+            }
+
+            activeDungeon = null;
+            document.getElementById('dungeonBattle').classList.add('hidden');
+            document.getElementById('dungeonRooms').classList.remove('hidden');
+            updateDungeonStatus(`Floor ${floor} cleared! Loot drops are chance-based; return whenever you are ready for another run.`);
+            saveCharacters();
+            loadCharacterUI();
+            showNotification(`Dungeon cleared! +${goldReward} gold and ${expReward} EXP${drops.length ? ` · Bonus: ${drops.join(', ')}` : ' · No bonus drop this time.'}`);
+        }
+
+        function loseDungeon() {
+            const meta = getMetaStats();
+            if (meta) meta.dungeonDefeats += 1;
+            activeDungeon = null;
+            document.getElementById('dungeonBattle').classList.add('hidden');
+            document.getElementById('dungeonRooms').classList.remove('hidden');
+            updateDungeonStatus('Your party was forced to retreat. Recover your health and try the floor again.');
+            const char = gameState.currentCharacter;
+            if (char) {
+                char.hp = Math.max(1, Math.ceil(char.maxHp * 0.25));
+                saveCharacters();
+                loadCharacterUI();
+            }
+            showNotification('Defeated in the dungeon — no floor rewards were earned.');
+        }
+
+        function trainAllStats() {
+            const char = gameState.currentCharacter;
+            if (!char) return;
+            if (combatActive || activeDungeon) {
+                showNotification('You cannot train during an active fight.');
+                return;
+            }
+            if (char.energy < 20) {
+                showNotification('Training all stats costs 20 Energy.');
+                return;
+            }
+
+            char.energy -= 20;
+            const stats = ['STR', 'DEF', 'SPD', 'EVA'];
+            const gains = {};
+            stats.forEach((stat) => {
+                const gloryDrain = Math.min(5, Math.max(0, Number(char.glory) || 0));
+                char.glory = Math.max(0, char.glory - 5);
+                const maxGlory = Math.max(1, Number(char.maxGlory) || 1);
+                const gain = Math.max(1, Math.ceil((char.glory / maxGlory) * 3));
+                char.stats[stat.toLowerCase()] += gain;
+                gains[stat] = gain;
+            });
+
+            const meta = getMetaStats();
+            if (meta) meta.trainingSessions += stats.length;
+            advanceStoryQuest('training');
+            advanceRankQuests('training', stats.length);
+            loadCharacterUI();
+            showNotification(`All stats trained! STR +${gains.STR}, DEF +${gains.DEF}, SPD +${gains.SPD}, EVA +${gains.EVA}.`);
+        }
+
+        function trainStat(stat) {
+    const char = gameState.currentCharacter;
+    if (!char) return;
+    if (combatActive || activeDungeon) {
+        showNotification('You cannot train during an active fight.');
+        return;
+    }
+    if (char.energy < 5) {
+        showNotification('Training costs 5 Energy.');
+        return;
+    }
+
+    char.energy -= 5;
+    const gloryDrain = Math.min(5, Math.max(0, Number(char.glory) || 0));
+    char.glory = Math.max(0, char.glory - 5);
+    const maxGlory = Math.max(1, Number(char.maxGlory) || 1);
+    const gain = Math.max(1, Math.ceil((char.glory / maxGlory) * 3));
+    const meta = getMetaStats();
+    if (meta) meta.trainingSessions += 1;
+    const statKey = stat.toLowerCase();
+    char.stats[statKey] += gain;
+    advanceStoryQuest('training');
+    advanceRankQuests('training');
+    loadCharacterUI();
+    showNotification(`${stat} +${gain}! Training drained ${gloryDrain} Glory.`);
+}
+
+
+        const marketCatalog = [
+            { name: 'Minor Healing Potion', price: 120, level: 1, type: 'consumable', category: 'Potions', effect: 'hp', amount: 50, icon: '🧪', description: 'Restore up to 50 HP. Use from your inventory.' },
+            { name: 'Energy Tonic', price: 150, level: 1, type: 'consumable', category: 'Potions', effect: 'energy', amount: 40, icon: '⚡', description: 'Restore up to 40 Energy. Use from your inventory.' },
+            { name: 'Glory Draught', price: 180, level: 2, type: 'consumable', category: 'Potions', effect: 'glory', amount: 35, icon: '✨', description: 'Restore up to 35 Glory. Use from your inventory.' },
+            { name: 'Apprentice Blade', price: 200, level: 1, category: 'Weapons', stat: 'str', bonus: 2, icon: '🗡️', description: 'A reliable starter weapon for new adventurers.' },
+            { name: 'Iron Sword', price: 650, level: 3, category: 'Weapons', stat: 'str', bonus: 5, icon: '⚔️', description: 'A sturdier blade with a stronger damage bonus.' },
+            { name: 'Steel Shield', price: 800, level: 4, category: 'Armor', stat: 'def', bonus: 6, icon: '🛡️', description: 'Adds Defense to help withstand dungeon attacks.' },
+            { name: 'Greater Healing Potion', price: 400, level: 5, type: 'consumable', category: 'Potions', effect: 'hp', amount: 120, icon: '❤️', description: 'Restore up to 120 HP. Use from your inventory.' },
+            { name: 'Greater Energy Elixir', price: 500, level: 7, type: 'consumable', category: 'Potions', effect: 'energy', amount: 100, icon: '🔋', description: 'Restore up to 100 Energy. Use from your inventory.' },
+            { name: 'Greater Glory Draught', price: 550, level: 8, type: 'consumable', category: 'Potions', effect: 'glory', amount: 100, icon: '🌟', description: 'Restore up to 100 Glory. Use from your inventory.' },
+            { name: 'Swiftstep Boots', price: 700, level: 5, stat: 'spd', bonus: 6, icon: '🥾', description: 'Light boots that increase Speed.' },
+            { name: 'Ranger’s Charm', price: 900, level: 6, stat: 'eva', bonus: 8, icon: '🎯', description: 'A charm that increases Evasion.' },
+            { name: 'Runed Staff', price: 1200, level: 7, stat: 'str', bonus: 10, icon: '🔮', description: 'An enchanted staff with a hefty Strength bonus.' },
+            { name: 'Knight’s Plate', price: 1500, level: 8, stat: 'def', bonus: 14, icon: '🪖', description: 'Heavy armor that greatly improves Defense.' },
+            { name: 'Windrunner Greaves', price: 1900, level: 9, stat: 'spd', bonus: 14, icon: '💨', description: 'Rare greaves that provide a major Speed boost.' },
+            { name: 'Shadowcloak', price: 2400, level: 10, stat: 'eva', bonus: 18, icon: '🌑', description: 'A cloak woven to help its wearer evade danger.' },
+            { name: 'Warhammer of the Deep', price: 3000, level: 11, stat: 'str', bonus: 25, icon: '🔨', description: 'A massive hammer carrying a powerful Strength bonus.' },
+            { name: 'Wyrmguard Armor', price: 3900, level: 12, stat: 'def', bonus: 32, icon: '🐉', description: 'Dragon-forged armor with exceptional Defense.' },
+            { name: 'Phantom Dancer', price: 4800, level: 13, stat: 'spd', bonus: 30, icon: '✨', description: 'Enchanted gear that greatly increases Speed.' },
+            { name: 'Crown of the Seer', price: 5700, level: 14, stat: 'eva', bonus: 38, icon: '👑', description: 'A legendary crown that sharpens Evasion.' },
+            { name: 'Ashen Dragonblade', price: 7500, level: 15, stat: 'str', bonus: 65, icon: '🔥', description: 'A legendary blade forged in dragonfire.' },
+            { name: 'Heart of the Mountain', price: 9800, level: 16, stat: 'maxHp', bonus: 100, icon: '❤️', description: 'Raises maximum health by 100 and restores that much health.' },
+            { name: 'Aetherforged Relic', price: 13500, level: 18, stats: { str: 35, def: 35, spd: 35, eva: 35 }, icon: '💎', description: 'A relic that grants +35 to every core stat.' }
+        ];
+
+        function renderMarketItems() {
+            const container = document.getElementById('marketItems');
+            if (!container) return;
+            container.replaceChildren();
+
+            const currentLevel = Number(gameState.currentCharacter?.level) || 1;
+            const renderedItems = new Set();
+            marketCatalog.forEach((item) => {
+                const itemKey = item.name.trim().toLowerCase();
+                if (renderedItems.has(itemKey)) return;
+                renderedItems.add(itemKey);
+
+                const card = document.createElement('article');
+                card.className = 'item-card content-panel';
+                card.title = `${item.description} Requires level ${item.level}.`;
+                const title = document.createElement('div');
+                title.className = 'font-bold text-yellow-400';
+                title.textContent = `${item.icon} ${item.name}`;
+                const category = document.createElement('div');
+                category.className = 'inventory-item-type mt-2';
+                category.textContent = item.category || (item.type === 'consumable' ? 'Potions' : item.stats ? 'Relics' : item.stat === 'def' ? 'Armor' : ['spd', 'eva'].includes(item.stat) ? 'Accessories' : 'Weapons');
+                const bonus = document.createElement('div');
+                bonus.className = 'text-sm text-gray-300 mt-2';
+                bonus.textContent = item.type === 'consumable'
+                    ? `Restores up to ${item.amount} ${item.effect === 'hp' ? 'HP' : item.effect === 'energy' ? 'Energy' : 'Glory'}`
+                    : item.stats
+                        ? Object.entries(item.stats).map(([stat, value]) => `+${value} ${stat.toUpperCase()}`).join(' · ')
+                        : `+${item.bonus} ${item.stat === 'maxHp' ? 'Max HP' : item.stat.toUpperCase()}`;
+                const requirement = document.createElement('div');
+                requirement.className = 'text-xs text-gray-400 mt-2';
+                requirement.textContent = `Unlocks at Level ${item.level}${item.description ? ` · ${item.description}` : ''}`;
+                const price = document.createElement('div');
+                price.className = 'text-yellow-500 font-bold mt-2';
+                price.textContent = `${item.price.toLocaleString()} Gold`;
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'btn-success text-sm w-full mt-3';
+                button.disabled = currentLevel < item.level;
+                button.textContent = currentLevel < item.level ? `Unlock at Level ${item.level}` : 'Buy';
+                button.title = currentLevel < item.level
+                    ? `Reach level ${item.level} to unlock. ${item.description}`
+                    : item.description;
+                button.addEventListener('click', () => buyItem(item.name));
+                card.append(title, category, bonus, requirement, price, button);
+                container.appendChild(card);
+            });
+        }
+
+        function buyItem(itemName) {
+            const char = gameState.currentCharacter;
+            const item = marketCatalog.find((entry) => entry.name === itemName);
+            if (!char || !item) return;
+            if (combatActive || activeDungeon) {
+                showNotification('You cannot shop during an active fight.');
+                return;
+            }
+            if ((Number(char.level) || 1) < item.level) {
+                showNotification(`${item.name} unlocks at level ${item.level}.`);
+                return;
+            }
+            if (char.gold < item.price) {
+                showNotification('Not enough gold!');
+                return;
+            }
+
+            char.gold -= item.price;
+            char.inventory = Array.isArray(char.inventory) ? char.inventory : [];
+            const meta = getMetaStats();
+            meta.itemsPurchased += 1;
+            meta.goldSpent += item.price;
+            if (item.type !== 'consumable') {
+                if (item.stats) {
+                    Object.entries(item.stats).forEach(([stat, bonus]) => {
+                        char.stats[stat] = (Number(char.stats[stat]) || 0) + bonus;
+                    });
+                } else if (item.stat === 'maxHp') {
+                    char.maxHp += item.bonus;
+                    char.hp = Math.min(char.maxHp, char.hp + item.bonus);
+                } else {
+                    char.stats[item.stat] = (Number(char.stats[item.stat]) || 0) + item.bonus;
+                }
+            }
+            char.inventory = Array.isArray(char.inventory) ? char.inventory : [];
+            char.inventory.push(`${item.name} (+${item.price.toLocaleString()} gold)`);
+            advanceStoryQuest('purchase');
+            advanceRankQuests('purchase');
+            loadCharacterUI();
+            showNotification(item.type === 'consumable'
+                ? `${item.name} added to your inventory.`
+                : `Bought ${item.name} for ${item.price.toLocaleString()} gold!`);
+        }
+
+        function useInventoryItem(index) {
+            const char = gameState.currentCharacter;
+            if (!char || !Array.isArray(char.inventory)) return;
+            if (combatActive || activeDungeon) {
+                showNotification('You cannot use items during an active fight.');
+                return;
+            }
+            const storedItem = char.inventory[index];
+            const itemName = String(storedItem).replace(/ \(\+[\d,]+ gold\)$/, '');
+            const item = marketCatalog.find((entry) => entry.name === itemName && entry.type === 'consumable');
+            if (!item) return;
+
+            const currentValue = Number(char[item.effect]) || 0;
+            const maxValue = Number(char[item.effect === 'hp' ? 'maxHp' : item.effect === 'energy' ? 'maxEnergy' : 'maxGlory']) || 0;
+            if (currentValue >= maxValue) {
+                showNotification(`Your ${item.effect === 'hp' ? 'health' : item.effect} is already full.`);
+                return;
+            }
+
+            char[item.effect] = Math.min(maxValue, currentValue + item.amount);
+            getMetaStats().potionsUsed += 1;
+            advanceRankQuests('potionUsed');
+            char.inventory.splice(index, 1);
+            saveCharacters();
+            loadCharacterUI();
+            showNotification(`${item.name} used! Restored ${char[item.effect] - currentValue} ${item.effect === 'hp' ? 'HP' : item.effect === 'energy' ? 'Energy' : 'Glory'}.`);
+        }
+
+        const REST_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+        const REGEN_INTERVAL_MS = 3 * 60 * 1000;
+        const REGEN_AMOUNT = 5;
+
+        function updateRegenCountdowns() {
+            const char = gameState.currentCharacter;
+            const resources = [
+                { key: 'hp', maxKey: 'maxHp', timerId: 'hpRegenTimer' },
+                { key: 'energy', maxKey: 'maxEnergy', timerId: 'energyRegenTimer' },
+                { key: 'glory', maxKey: 'maxGlory', timerId: 'gloryRegenTimer' },
+            ];
+            const lastRegenAt = Number(char?.lastRegenAt);
+            const elapsed = Number.isFinite(lastRegenAt) && lastRegenAt > 0 ? Math.max(0, Date.now() - lastRegenAt) : 0;
+            const remainingMs = REGEN_INTERVAL_MS - (elapsed % REGEN_INTERVAL_MS);
+            const totalSeconds = Math.ceil(remainingMs / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            const countdown = `Next +${REGEN_AMOUNT} in ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+            resources.forEach(({ key, maxKey, timerId }) => {
+                const timer = document.getElementById(timerId);
+                if (!timer) return;
+                timer.textContent = !char || Number(char[key]) >= Number(char[maxKey]) ? 'Fully restored' : countdown;
+            });
+        }
+
+        function updateRestCooldown() {
+            const button = document.getElementById('quickRestBtn');
+            const countdown = document.getElementById('restCooldown');
+            const char = gameState.currentCharacter;
+            if (!button || !countdown) return;
+
+            const remaining = char ? Math.max(0, (Number(char.nextRestAt) || 0) - Date.now()) : 0;
+            button.disabled = remaining > 0;
+
+            if (remaining <= 0) {
+                countdown.textContent = 'Rest is ready.';
+                return;
+            }
+
+            const totalSeconds = Math.ceil(remaining / 1000);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            countdown.textContent = `Rest available in ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        function restNow() {
+            const char = gameState.currentCharacter;
+            if (!char) return;
+            if (combatActive || activeDungeon) {
+                showNotification('You cannot rest during an active fight.');
+                return;
+            }
+
+            if ((Number(char.nextRestAt) || 0) > Date.now()) {
+                updateRestCooldown();
+                showNotification('Rest is still on cooldown.');
+                return;
+            }
+
+            char.hp = char.maxHp;
+            char.energy = char.maxEnergy;
+            char.lastRegenAt = Date.now();
+            char.nextRestAt = Date.now() + REST_COOLDOWN_MS;
+            saveCharacters();
+            loadCharacterUI();
+            showNotification('You rested and recovered! You can rest again in 24 hours.');
+        }
+
+        function deleteCharacter() {
+            if (!confirm('Are you sure? This cannot be undone!')) return;
+            delete gameState.characters[gameState.currentCharacter.name];
+            combatActive = false;
+            combatTurnPending = false;
+            activeDungeon = null;
+            gameState.currentCharacter = null;
+            gameState.users[gameState.currentUser].characters = gameState.characters;
+            localStorage.setItem('users', JSON.stringify(gameState.users));
+            document.getElementById('gameContainer').classList.add('hidden');
+            showCharacterSelection();
+        }
+
+        function logout() {
+            gameState.currentUser = null;
+            gameState.currentCharacter = null;
+            gameState.characters = {};
+            combatActive = false;
+            combatTurnPending = false;
+            activeDungeon = null;
+            document.getElementById('gameContainer').classList.add('hidden');
+            document.getElementById('charSelectContainer').classList.add('hidden');
+            document.getElementById('welcomeModal').classList.add('hidden');
+            hideMeritShop();
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('loginError').classList.add('hidden');
+            document.getElementById('registerError').classList.add('hidden');
+            document.getElementById('authContainer').classList.remove('hidden');
+        }
+
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('currentTime').textContent = now.toLocaleTimeString();
+        }
+
+        function showError(element, message) {
+            element.textContent = message;
+            element.classList.remove('hidden');
+        }
+
+        function showNotification(message) {
+            const notif = document.createElement('div');
+            notif.className = 'notification';
+            notif.textContent = message;
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 3000);
+        }
+
+        // Merit Shop Modal functions
+        const meritShopModal = document.getElementById('meritShopModal');
+        const meritShopBackdrop = document.getElementById('meritShopBackdrop');
+
+        function showMeritShop() {
+            meritShopModal.classList.add('show');
+            meritShopBackdrop.classList.add('show');
+
+            // Update balance inside modal
+            if (gameState.currentCharacter) {
+                document.getElementById('meritShopBalanceModal').textContent = gameState.currentCharacter.merits;
+                updateMeritPurchasesModal();
+            }
+        }
+
+        function hideMeritShop() {
+            meritShopModal.classList.remove('show');
+            meritShopBackdrop.classList.remove('show');
+        }
+        function regenerateStats(refreshUI = true) {
+            const char = gameState.currentCharacter;
+            if (!char) return;
+
+            const now = Date.now();
+            const lastRegenAt = Number(char.lastRegenAt);
+            if (!Number.isFinite(lastRegenAt) || lastRegenAt <= 0) {
+                char.lastRegenAt = now;
+                saveCharacters();
+                return;
+            }
+
+            const intervals = Math.floor(Math.max(0, now - lastRegenAt) / REGEN_INTERVAL_MS);
+            if (intervals === 0) return;
+
+            char.lastRegenAt = lastRegenAt + intervals * REGEN_INTERVAL_MS;
+            const recovery = intervals * REGEN_AMOUNT;
+            char.hp = Math.min(Number(char.hp) + recovery, Number(char.maxHp));
+            char.energy = Math.min(Number(char.energy) + recovery, Number(char.maxEnergy));
+            char.glory = Math.min(Number(char.glory) + recovery, Number(char.maxGlory));
+            saveCharacters();
+
+            if (refreshUI) loadCharacterUI();
+        }
+
+        // Catch up after offline time and when a background tab becomes active again.
+        setInterval(regenerateStats, REGEN_INTERVAL_MS);
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) regenerateStats();
+        });
+        window.addEventListener('focus', () => regenerateStats());
+
+    </script>
+</body>
+</html>
