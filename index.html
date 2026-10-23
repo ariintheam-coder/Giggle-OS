@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Giggle OS</title>
+    <style>
+      :root {
+        --win98-bg: #c0c0c0;
+        --win98-panel: #d4d0c8;
+        --win98-shadow: #808080;
+        --win98-dark: #404040;
+        --win98-blue: #000080;
+        --win98-light: #ffffff;
+        --win98-surface: #ece9e1;
+        --taskbar-h: 42px;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        font-family: "MS Sans Serif", Tahoma, Verdana, sans-serif;
+        background: #008080;
+        color: #111;
+      }
+
+      body {
+        background:
+          linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0) 20%),
+          linear-gradient(180deg, #0b5a8a 0%, #2f87b5 18%, #5aa8cd 25%, #4d9ab8 100%);
+      }
+
+      #desktop {
+        position: relative;
+        width: 100%;
+        height: calc(100% - var(--taskbar-h));
+        overflow: hidden;
+      }
+
+      #desktop::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(180deg, rgba(255,255,255,0.08), rgba(0,0,0,0.08)),
+          repeating-linear-gradient(
+            90deg,
+            rgba(255,255,255,0.08),
+            rgba(255,255,255,0.08) 2px,
+            rgba(0,0,0,0.04) 2px,
+            rgba(0,0,0,0.04) 4px
+          );
+        pointer-events: none;
+      }
+
+      .desktop-icons {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        z-index: 1;
+      }
+
+      .desktop-icon {
+        width: 86px;
+        background: transparent;
+        border: none;
+        color: white;
+        text-shadow: 1px 1px 1px rgba(0,0,0,0.9);
+        cursor: pointer;
+        text-align: center;
+        padding: 4px;
+        font-size: 12px;
+      }
+
+      .desktop-icon:focus,
+      .desktop-icon:hover {
+        outline: 1px dotted rgba(255,255,255,0.8);
+        outline-offset: 0;
+      }
+
+      .desktop-icon .icon {
+        width: 42px;
+        height: 42px;
+        margin: 0 auto 6px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.05);
+        box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2);
+        font-size: 28px;
+      }
+
+      .desktop-icon .label {
+        display: inline-block;
+        line-height: 1.2;
+        word-break: break-word;
+      }
+
+      .window-layer {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+      }
+
+      .window {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        background: var(--win98-panel);
+        border: 2px solid;
+        border-color: var(--win98-light) var(--win98-shadow) var(--win98-shadow) var(--win98-light);
+        box-shadow: 3px 3px 0 rgba(0,0,0,0.35);
+        min-width: 250px;
+        min-height: 180px;
+      }
+
+      .window.active {
+        box-shadow: 5px 5px 0 rgba(0,0,0,0.4);
+      }
+
+      .window-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: linear-gradient(90deg, #000080, #1084d0);
+        color: white;
+        padding: 2px 4px 2px 6px;
+        cursor: move;
+        user-select: none;
+        height: 22px;
+      }
+
+      .window-title {
+        font-size: 12px;
+        font-weight: bold;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .window-controls {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+      }
+
+      .window-button {
+        position: relative;
+        width: 18px;
+        height: 18px;
+        background: var(--win98-bg);
+        border: 2px solid;
+        border-color: var(--win98-light) var(--win98-shadow) var(--win98-shadow) var(--win98-light);
+        cursor: pointer;
+        padding: 0;
+        display: grid;
+        place-items: center;
+        font-weight: bold;
+        color: black;
+      }
+
+      .window-button:active {
+        border-color: var(--win98-shadow) var(--win98-light) var(--win98-light) var(--win98-shadow);
+      }
+
+      .window-body {
+        flex: 1;
+        min-height: 0;
+        background: var(--win98-panel);
+        padding: 4px;
+      }
+
+      iframe {
+        width: 100%;
+        height: 100%;
+        border: 2px solid;
+        border-color: var(--win98-shadow) var(--win98-light) var(--win98-light) var(--win98-shadow);
+        background: white;
+      }
+
+      #taskbar {
+        position: relative;
+        height: var(--taskbar-h);
+        background: var(--win98-bg);
+        border-top: 2px solid var(--win98-light);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 6px;
+        z-index: 100;
+      }
+
+      #start-button {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        height: 32px;
+        padding: 0 16px 0 10px;
+        background: var(--win98-bg);
+        border: 2px solid;
+        border-color: var(--win98-light) var(--win98-shadow) var(--win98-shadow) var(--win98-light);
+        font-weight: bold;
+        font-size: 13px;
+        cursor: pointer;
+        box-shadow: inset 1px 1px 0 rgba(255,255,255,0.5);
+      }
+
+      #start-button:active {
+        border-color: var(--win98-shadow) var(--win98-light) var(--win98-light) var(--win98-shadow);
+        box-shadow: inset 1px 1px 0 rgba(0,0,0,0.3);
+      }
+
+      #start-button .logo {
+        width: 16px;
+        height: 16px;
+        background: linear-gradient(135deg, #ff0000, #c00000);
+        border: 1px solid #000;
+        position: relative;
+        display: inline-block;
+      }
+
+      #start-button .logo::before {
+        content: "";
+        position: absolute;
+        inset: 3px;
+        background: linear-gradient(135deg, #fff, #e0e0e0);
+        clip-path: polygon(0 0, 100% 0, 100% 80%, 75% 100%, 0 100%);
+      }
+
+      #start-menu {
+        position: absolute;
+        left: 8px;
+        bottom: 43px;
+        width: 210px;
+        background: var(--win98-bg);
+        border: 2px solid;
+        border-color: var(--win98-shadow) var(--win98-light) var(--win98-light) var(--win98-shadow);
+        display: none;
+        box-shadow: 3px 3px 0 rgba(0,0,0,0.35);
+      }
+
+      #start-menu.open {
+        display: block;
+      }
+
+      #start-menu .brand {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+        height: 100%;
+        width: 28px;
+        background: linear-gradient(180deg, #7d7d7d, #bcbcbc);
+        color: #fff;
+        font-weight: bold;
+        letter-spacing: 1px;
+        text-shadow: 1px 1px 0 #000;
+        border-right: 2px solid #696969;
+      }
+
+      #start-menu-inner {
+        display: flex;
+        min-height: 200px;
+      }
+
+      #start-menu-list {
+        flex: 1;
+        list-style: none;
+        margin: 0;
+        padding: 4px;
+        background: var(--win98-panel);
+      }
+
+      #start-menu-list li {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 8px;
+        font-size: 12px;
+        cursor: pointer;
+        border: 1px solid transparent;
+      }
+
+      #start-menu-list li:hover {
+        background: var(--win98-blue);
+        color: white;
+      }
+
+      #taskbar-window-list {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        overflow: hidden;
+        min-width: 0;
+      }
+
+      .taskbar-item {
+        max-width: 160px;
+        min-width: 100px;
+        height: 30px;
+        border: 2px solid;
+        border-color: var(--win98-light) var(--win98-shadow) var(--win98-shadow) var(--win98-light);
+        background: var(--win98-bg);
+        color: #111;
+        padding: 4px 8px;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .taskbar-item.active {
+        background: #d7d3c9;
+        border-color: var(--win98-shadow) var(--win98-light) var(--win98-light) var(--win98-shadow);
+      }
+
+      #clock {
+        width: 90px;
+        min-width: 90px;
+        height: 30px;
+        border: 2px solid;
+        border-color: var(--win98-shadow) var(--win98-light) var(--win98-light) var(--win98-shadow);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        background: var(--win98-panel);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="desktop">
+      <div id="desktop-icons" class="desktop-icons"></div>
+      <div id="window-layer" class="window-layer"></div>
+    </div>
+
+    <div id="taskbar">
+      <button id="start-button" type="button" aria-expanded="false">
+        <span class="logo" aria-hidden="true"></span>
+        <span>Start</span>
+      </button>
+
+      <div id="start-menu" aria-label="Start menu">
+        <div id="start-menu-inner">
+          <div class="brand">Giggle OS</div>
+          <ul id="start-menu-list"></ul>
+        </div>
+      </div>
+
+      <div id="taskbar-window-list"></div>
+      <div id="clock">--:--</div>
+    </div>
+
+    <script>
+      const apps = [
+        { name: 'EReader', file: 'Apps/EReader.html', icon: '📖' },
+        { name: 'LocalMind', file: 'Apps/LocalMind.html', icon: '🧠' },
+        { name: 'MusiMobile', file: 'Apps/MusiMobile.html', icon: '🎵' },
+        { name: 'NotePlate', file: 'Apps/NotePlate.html', icon: '📝' },
+        { name: 'Youtube', file: 'Apps/Youtube.html', icon: '🎬' },
+        { name: 'asciispace', file: 'Apps/asciispace.html', icon: '🚀' },
+        { name: 'captaincallisto', file: 'Apps/captaincallisto.html', icon: '🪐' },
+        { name: 'chromedino', file: 'Apps/chromedino.html', icon: '🦖' },
+        { name: 'haven', file: 'Apps/haven.html', icon: '🏕️' },
+        { name: 'offlineparadise', file: 'Apps/offlineparadise.html', icon: '🌴' },
+        { name: 'packabunchas', file: 'Apps/packabunchas.html', icon: '📦' },
+        { name: 'rokepogue', file: 'Apps/rokepogue.html', icon: '📚' },
+        { name: 'spacehuggers', file: 'Apps/spacehuggers.html', icon: '🌌' }
+      ];
+
+      const desktopIcons = document.getElementById('desktop-icons');
+      const startMenuList = document.getElementById('start-menu-list');
+      const taskbarWindowList = document.getElementById('taskbar-window-list');
+      const windowLayer = document.getElementById('window-layer');
+      const startButton = document.getElementById('start-button');
+      const startMenu = document.getElementById('start-menu');
+      const clockEl = document.getElementById('clock');
+
+      function renderDesktopApps() {
+        for (const app of apps) {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'desktop-icon';
+          button.innerHTML = `
+            <div class="icon" aria-hidden="true">${app.icon}</div>
+            <span class="label">${app.name}</span>
+          `;
+          button.addEventListener('dblclick', () => openApp(app));
+          desktopIcons.appendChild(button);
+        }
+      }
+
+      function renderStartMenu() {
+        for (const app of apps) {
+          const item = document.createElement('li');
+          item.innerHTML = `<span aria-hidden="true">${app.icon}</span><span>${app.name}</span>`;
+          item.addEventListener('click', () => {
+            openApp(app);
+            toggleStartMenu(false);
+          });
+          startMenuList.appendChild(item);
+        }
+      }
+
+      function openApp(app) {
+        const existing = document.querySelector(`.window[data-app="${app.name}"]`);
+        if (existing) {
+          focusWindow(existing);
+          return;
+        }
+
+        const win = document.createElement('div');
+        win.className = 'window active';
+        win.dataset.app = app.name;
+
+        const defaultWidth = Math.min(860, window.innerWidth * 0.7);
+        const defaultHeight = Math.min(620, window.innerHeight * 0.65);
+        const left = Math.random() * Math.max(80, window.innerWidth - defaultWidth - 100);
+        const top = Math.random() * Math.max(30, window.innerHeight - defaultHeight - 120);
+
+        win.style.left = `${left}px`;
+        win.style.top = `${top}px`;
+        win.style.width = `${defaultWidth}px`;
+        win.style.height = `${defaultHeight}px`;
+
+        const header = document.createElement('div');
+        header.className = 'window-header';
+        header.innerHTML = `
+          <div class="window-title">${app.name}</div>
+          <div class="window-controls">
+            <button class="window-button" type="button" data-action="minimize" title="Minimize">_</button>
+            <button class="window-button" type="button" data-action="maximize" title="Maximize">□</button>
+            <button class="window-button" type="button" data-action="close" title="Close">×</button>
+          </div>
+        `;
+
+        const body = document.createElement('div');
+        body.className = 'window-body';
+
+        const frame = document.createElement('iframe');
+        frame.src = app.file;
+        frame.title = app.name;
+        frame.loading = 'lazy';
+        frame.setAttribute('sandbox', 'allow-scripts allow-forms allow-same-origin allow-popups allow-modals');
+
+        body.appendChild(frame);
+        win.appendChild(header);
+        win.appendChild(body);
+        windowLayer.appendChild(win);
+
+        const taskbarItem = document.createElement('div');
+        taskbarItem.className = 'taskbar-item active';
+        taskbarItem.textContent = app.name;
+        taskbarItem.title = app.name;
+        taskbarItem.addEventListener('click', () => focusWindow(win));
+        taskbarWindowList.appendChild(taskbarItem);
+
+        win.dataset.taskbarItem = String(taskbarWindowList.children.length - 1);
+
+        let isDragging = false;
+        let startX = 0;
+        let startY = 0;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        header.addEventListener('mousedown', (event) => {
+          if (event.target.closest('.window-button')) return;
+          isDragging = true;
+          focusWindow(win);
+          const rect = win.getBoundingClientRect();
+          startX = event.clientX;
+          startY = event.clientY;
+          offsetX = rect.left;
+          offsetY = rect.top;
+        });
+
+        document.addEventListener('mousemove', (event) => {
+          if (!isDragging) return;
+          const nextLeft = Math.min(Math.max(offsetX + (event.clientX - startX), 0), window.innerWidth - 120);
+          const nextTop = Math.min(Math.max(offsetY + (event.clientY - startY), 0), window.innerHeight - 100);
+          win.style.left = `${nextLeft}px`;
+          win.style.top = `${nextTop}px`;
+        });
+
+        document.addEventListener('mouseup', () => {
+          isDragging = false;
+        });
+
+        win.addEventListener('mousedown', () => focusWindow(win));
+
+        header.querySelector('[data-action="close"]').addEventListener('click', () => closeWindow(win));
+        header.querySelector('[data-action="minimize"]').addEventListener('click', () => {
+          win.style.display = 'none';
+          taskbarItem.style.opacity = '0.6';
+        });
+        header.querySelector('[data-action="maximize"]').addEventListener('click', () => {
+          if (win.dataset.maximized === 'true') {
+            win.dataset.maximized = 'false';
+            win.style.left = win.dataset.prevLeft || '100px';
+            win.style.top = win.dataset.prevTop || '80px';
+            win.style.width = win.dataset.prevWidth || '800px';
+            win.style.height = win.dataset.prevHeight || '550px';
+          } else {
+            win.dataset.prevLeft = win.style.left;
+            win.dataset.prevTop = win.style.top;
+            win.dataset.prevWidth = win.style.width;
+            win.dataset.prevHeight = win.style.height;
+            win.dataset.maximized = 'true';
+            win.style.left = '0px';
+            win.style.top = '0px';
+            win.style.width = `${window.innerWidth - 4}px`;
+            win.style.height = `${window.innerHeight - 50}px`;
+          }
+          focusWindow(win);
+        });
+
+        focusWindow(win);
+      }
+
+      function focusWindow(win) {
+        const allWindows = document.querySelectorAll('.window');
+        allWindows.forEach((w) => w.classList.remove('active'));
+        win.classList.add('active');
+
+        const taskItems = [...document.querySelectorAll('.taskbar-item')];
+        taskItems.forEach((item) => item.classList.remove('active'));
+
+        const associatedItem = taskItems.find((item) => item.textContent === win.dataset.app);
+        if (associatedItem) {
+          associatedItem.classList.add('active');
+        }
+      }
+
+      function closeWindow(win) {
+        const taskItem = [...taskbarWindowList.children].find((item) => item.textContent === win.dataset.app);
+        if (taskItem) taskItem.remove();
+        win.remove();
+      }
+
+      function toggleStartMenu(force) {
+        const shouldOpen = force !== undefined ? force : !startMenu.classList.contains('open');
+        startMenu.classList.toggle('open', shouldOpen);
+        startButton.setAttribute('aria-expanded', String(shouldOpen));
+      }
+
+      startButton.addEventListener('click', () => toggleStartMenu());
+      document.addEventListener('click', (event) => {
+        if (!startMenu.contains(event.target) && !startButton.contains(event.target)) {
+          toggleStartMenu(false);
+        }
+      });
+
+      function updateClock() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+        clockEl.textContent = timeString;
+      }
+
+      updateClock();
+      setInterval(updateClock, 1000 * 30);
+
+      renderDesktopApps();
+      renderStartMenu();
+    </script>
+  </body>
+</html>
