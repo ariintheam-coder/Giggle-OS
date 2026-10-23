@@ -6,8 +6,9 @@
     <title>Giggle OS</title>
     <style>
       :root {
-        --bg-1: #0a4d7a;
-        --bg-2: #1c7ea8;
+        --desktop-top: #2d7aa4;
+        --desktop-mid: #5aa5d2;
+        --desktop-bottom: #3d82a8;
         --win98-bg: #c0c0c0;
         --win98-panel: #d4d0c8;
         --win98-light: #ffffff;
@@ -25,15 +26,14 @@
         width: 100%;
         height: 100%;
         overflow: hidden;
-        font-family: "MS Sans Serif", Tahoma, sans-serif;
-        background: var(--bg-1);
+        font-family: "MS Sans Serif", Tahoma, Verdana, sans-serif;
       }
 
       body {
-        background:
-          linear-gradient(180deg, rgba(255,255,255,0.08), rgba(0,0,0,0.06)),
-          linear-gradient(135deg, #0a4d7a 0%, #2f8ec0 25%, #5db4d7 45%, #4a90b5 100%);
+        background: linear-gradient(180deg, var(--desktop-top) 0%, var(--desktop-mid) 35%, var(--desktop-bottom) 100%);
       }
+
+      button, input { font: inherit; }
 
       #desktop {
         position: relative;
@@ -47,11 +47,11 @@
         position: absolute;
         inset: 0;
         background:
-          linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.08)),
+          linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.06)),
           repeating-linear-gradient(
-            to right,
-            rgba(255,255,255,0.04) 0,
-            rgba(255,255,255,0.04) 2px,
+            90deg,
+            rgba(255,255,255,0.02),
+            rgba(255,255,255,0.02) 2px,
             rgba(0,0,0,0.02) 2px,
             rgba(0,0,0,0.02) 4px
           );
@@ -60,29 +60,29 @@
 
       .desktop-icons {
         position: absolute;
-        inset: 12px auto auto 12px;
-        width: 120px;
+        top: 14px;
+        left: 14px;
         display: flex;
         flex-direction: column;
         gap: 12px;
-        z-index: 1;
+        z-index: 2;
       }
 
       .desktop-icon {
-        width: 86px;
+        width: 88px;
         background: transparent;
         border: none;
-        color: #fff;
-        text-shadow: 1px 1px 1px rgba(0,0,0,.75);
-        cursor: pointer;
+        color: white;
+        text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
         text-align: center;
-        padding: 4px 3px;
-        font-size: 12px;
+        cursor: pointer;
+        padding: 4px 2px;
+        user-select: none;
       }
 
-      .desktop-icon:focus,
-      .desktop-icon:hover {
-        outline: 1px dotted rgba(255,255,255,.95);
+      .desktop-icon:hover,
+      .desktop-icon:focus {
+        outline: 1px dotted rgba(255,255,255,0.9);
         outline-offset: 0;
       }
 
@@ -92,21 +92,23 @@
         margin: 0 auto 6px;
         display: grid;
         place-items: center;
-        font-size: 28px;
-        background: rgba(255,255,255,0.06);
-        border: 1px solid rgba(255,255,255,0.18);
-        box-shadow: inset 0 0 0 1px rgba(0,0,0,0.18);
+        font-size: 30px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.2);
+        box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2);
       }
 
       .desktop-icon .label {
         display: block;
         line-height: 1.2;
+        font-size: 12px;
+        word-break: break-word;
       }
 
       .window-layer {
         position: absolute;
         inset: 0;
-        z-index: 2;
+        z-index: 10;
       }
 
       .window {
@@ -122,7 +124,7 @@
       }
 
       .window.active {
-        box-shadow: 5px 5px 0 rgba(0,0,0,0.4);
+        box-shadow: 5px 5px 0 rgba(0,0,0,0.45);
       }
 
       .window-header {
@@ -130,7 +132,7 @@
         align-items: center;
         justify-content: space-between;
         background: linear-gradient(90deg, #000080, #1084d0);
-        color: #fff;
+        color: white;
         height: 22px;
         padding: 2px 4px 2px 6px;
         cursor: move;
@@ -152,19 +154,17 @@
       }
 
       .window-button {
-        position: relative;
         width: 18px;
         height: 18px;
-        border: 2px solid;
-        border-color: var(--win98-light) var(--win98-shadow) var(--win98-shadow) var(--win98-light);
-        background: var(--win98-bg);
-        color: #000;
         display: grid;
         place-items: center;
+        background: var(--win98-bg);
+        border: 2px solid;
+        border-color: var(--win98-light) var(--win98-shadow) var(--win98-shadow) var(--win98-light);
+        padding: 0;
+        color: #000;
         font-weight: 700;
         cursor: pointer;
-        padding: 0;
-        line-height: 1;
       }
 
       .window-button:active {
@@ -183,7 +183,40 @@
         height: 100%;
         border: 2px solid;
         border-color: var(--win98-shadow) var(--win98-light) var(--win98-light) var(--win98-shadow);
+        background: white;
+      }
+
+      .file-list {
+        width: 100%;
+        height: 100%;
         background: #fff;
+        border: 2px solid;
+        border-color: var(--win98-shadow) var(--win98-light) var(--win98-light) var(--win98-shadow);
+        overflow: auto;
+        padding: 8px;
+      }
+
+      .file-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        margin-bottom: 6px;
+        border: 1px solid transparent;
+        background: #f1f1f1;
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      .file-item:hover {
+        border-color: #7d7d7d;
+        background: #e6f0ff;
+      }
+
+      .file-item .glyph {
+        width: 22px;
+        text-align: center;
+        font-size: 20px;
       }
 
       .resize-handle {
@@ -193,7 +226,7 @@
         width: 16px;
         height: 16px;
         cursor: nwse-resize;
-        background: linear-gradient(135deg, #c0c0c0 0%, #c0c0c0 50%, #808080 50%, #808080 100%);
+        background: linear-gradient(135deg, #d5d5d5 0%, #d5d5d5 50%, #808080 50%, #808080 100%);
         border-top: 2px solid #fff;
         border-left: 2px solid #fff;
       }
@@ -211,16 +244,15 @@
       }
 
       #start-button {
+        height: 30px;
         display: flex;
         align-items: center;
         gap: 6px;
-        height: 30px;
         padding: 0 12px 0 8px;
         background: var(--win98-bg);
         border: 2px solid;
         border-color: var(--win98-light) var(--win98-shadow) var(--win98-shadow) var(--win98-light);
         font-weight: 700;
-        font-size: 13px;
         cursor: pointer;
       }
 
@@ -231,9 +263,9 @@
       #start-button .logo {
         width: 16px;
         height: 16px;
-        background: linear-gradient(135deg, #ff2d2d, #a80000);
-        position: relative;
         display: inline-block;
+        position: relative;
+        background: linear-gradient(135deg, #ff3a3a, #aa0000);
         border: 1px solid #000;
       }
 
@@ -241,8 +273,8 @@
         content: "";
         position: absolute;
         inset: 3px;
-        background: linear-gradient(135deg, #fff, #dfe5eb);
-        clip-path: polygon(0 0, 100% 0, 100% 100%, 25% 100%, 0 80%);
+        background: linear-gradient(135deg, #fff, #dfe6ef);
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 28% 100%, 0 70%);
       }
 
       #start-menu {
@@ -254,7 +286,7 @@
         border: 2px solid;
         border-color: var(--win98-shadow) var(--win98-light) var(--win98-light) var(--win98-shadow);
         display: none;
-        box-shadow: 3px 3px 0 rgba(0,0,0,0.35);
+        box-shadow: 4px 4px 0 rgba(0,0,0,0.35);
       }
 
       #start-menu.open {
@@ -268,24 +300,24 @@
 
       .brand {
         width: 28px;
-        background: linear-gradient(180deg, #7a7a7a, #c5c5c5);
+        background: linear-gradient(180deg, #767676, #c5c5c5);
         color: #fff;
-        font-weight: 700;
         display: flex;
         align-items: center;
         justify-content: center;
         writing-mode: vertical-rl;
         transform: rotate(180deg);
+        font-weight: 700;
         letter-spacing: 1px;
         text-shadow: 1px 1px 0 rgba(0,0,0,0.8);
-        border-right: 2px solid #6a6a6a;
+        border-right: 2px solid #666;
       }
 
       #start-menu-list {
         flex: 1;
         list-style: none;
-        padding: 4px;
         margin: 0;
+        padding: 4px;
         background: var(--win98-panel);
       }
 
@@ -296,12 +328,11 @@
         padding: 6px 8px;
         font-size: 12px;
         cursor: pointer;
-        border: 1px solid transparent;
       }
 
       #start-menu-list li:hover {
         background: var(--win98-blue);
-        color: #fff;
+        color: white;
       }
 
       #taskbar-window-list {
@@ -309,30 +340,30 @@
         display: flex;
         align-items: center;
         gap: 4px;
-        overflow: hidden;
         min-width: 0;
+        overflow: hidden;
       }
 
       .taskbar-item {
         max-width: 170px;
         min-width: 90px;
         height: 30px;
-        border: 2px solid;
-        border-color: var(--win98-light) var(--win98-shadow) var(--win98-shadow) var(--win98-light);
-        background: var(--win98-bg);
         display: flex;
         align-items: center;
         padding: 4px 8px;
         font-size: 12px;
+        border: 2px solid;
+        border-color: var(--win98-light) var(--win98-shadow) var(--win98-shadow) var(--win98-light);
+        background: var(--win98-bg);
         cursor: pointer;
+        white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        white-space: nowrap;
       }
 
       .taskbar-item.active {
+        background: #d7d3c9;
         border-color: var(--win98-shadow) var(--win98-light) var(--win98-light) var(--win98-shadow);
-        background: #d0d0d0;
       }
 
       #clock {
@@ -350,18 +381,16 @@
 
       .context-menu {
         position: absolute;
-        z-index: 300;
-        min-width: 140px;
+        z-index: 200;
+        min-width: 160px;
         background: var(--win98-bg);
         border: 2px solid;
         border-color: var(--win98-shadow) var(--win98-light) var(--win98-light) var(--win98-shadow);
-        box-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+        box-shadow: 3px 3px 0 rgba(0,0,0,0.3);
         display: none;
       }
 
-      .context-menu.open {
-        display: block;
-      }
+      .context-menu.open { display: block; }
 
       .context-menu-item {
         padding: 6px 10px;
@@ -371,7 +400,7 @@
 
       .context-menu-item:hover {
         background: var(--win98-blue);
-        color: #fff;
+        color: white;
       }
     </style>
   </head>
@@ -379,7 +408,7 @@
     <div id="desktop">
       <div id="desktop-icons" class="desktop-icons"></div>
       <div id="window-layer" class="window-layer"></div>
-      <div id="context-menu" class="context-menu" aria-label="Desktop menu"></div>
+      <div id="context-menu" class="context-menu" aria-label="Desktop context menu"></div>
     </div>
 
     <div id="taskbar">
@@ -400,21 +429,29 @@
     </div>
 
     <script>
-      const apps = [
-        { name: 'EReader', file: 'Apps/EReader.html', icon: '📖', category: 'Read' },
-        { name: 'LocalMind', file: 'Apps/LocalMind.html', icon: '🧠', category: 'Tools' },
-        { name: 'MusiMobile', file: 'Apps/MusiMobile.html', icon: '🎵', category: 'Media' },
-        { name: 'NotePlate', file: 'Apps/NotePlate.html', icon: '📝', category: 'Write' },
-        { name: 'Youtube', file: 'Apps/Youtube.html', icon: '🎬', category: 'Media' },
-        { name: 'asciispace', file: 'Apps/asciispace.html', icon: '🚀', category: 'Games' },
-        { name: 'captaincallisto', file: 'Apps/captaincallisto.html', icon: '🪐', category: 'Games' },
-        { name: 'chromedino', file: 'Apps/chromedino.html', icon: '🦖', category: 'Games' },
-        { name: 'haven', file: 'Apps/haven.html', icon: '🏕️', category: 'Apps' },
-        { name: 'offlineparadise', file: 'Apps/offlineparadise.html', icon: '🌴', category: 'Apps' },
-        { name: 'packabunchas', file: 'Apps/packabunchas.html', icon: '📦', category: 'Games' },
-        { name: 'rokepogue', file: 'Apps/rokepogue.html', icon: '📚', category: 'Read' },
-        { name: 'spacehuggers', file: 'Apps/spacehuggers.html', icon: '🌌', category: 'Games' }
+      const appEntries = [
+        { name: 'EReader', file: 'Apps/EReader.html', icon: '📖', kind: 'app' },
+        { name: 'LocalMind', file: 'Apps/LocalMind.html', icon: '🧠', kind: 'app' },
+        { name: 'MusiMobile', file: 'Apps/MusiMobile.html', icon: '🎵', kind: 'app' },
+        { name: 'NotePlate', file: 'Apps/NotePlate.html', icon: '📝', kind: 'app' },
+        { name: 'Youtube', file: 'Apps/Youtube.html', icon: '🎬', kind: 'app' },
+        { name: 'asciispace', file: 'Apps/asciispace.html', icon: '🚀', kind: 'app' },
+        { name: 'captaincallisto', file: 'Apps/captaincallisto.html', icon: '🪐', kind: 'app' },
+        { name: 'chromedino', file: 'Apps/chromedino.html', icon: '🦖', kind: 'app' },
+        { name: 'haven', file: 'Apps/haven.html', icon: '🏕️', kind: 'app' },
+        { name: 'offlineparadise', file: 'Apps/offlineparadise.html', icon: '🌴', kind: 'app' },
+        { name: 'packabunchas', file: 'Apps/packabunchas.html', icon: '📦', kind: 'app' },
+        { name: 'rokepogue', file: 'Apps/rokepogue.html', icon: '📚', kind: 'app' },
+        { name: 'spacehuggers', file: 'Apps/spacehuggers.html', icon: '🌌', kind: 'app' }
       ];
+
+      const desktopShortcuts = [
+        { name: 'My Computer', icon: '💻', kind: 'explorer', target: 'Apps' },
+        { name: 'Apps Folder', icon: '📁', kind: 'explorer', target: 'Apps' },
+        { name: 'Recycle Bin', icon: '🗑️', kind: 'bin', target: null }
+      ];
+
+      const allShortcuts = [...desktopShortcuts, ...appEntries.map((app) => ({ ...app, kind: 'app' }))];
 
       const desktopIcons = document.getElementById('desktop-icons');
       const startMenuList = document.getElementById('start-menu-list');
@@ -428,48 +465,50 @@
 
       const windowMap = new Map();
 
-      function renderDesktopApps() {
-        apps.forEach((app) => {
+      function buildDesktopIcons() {
+        allShortcuts.forEach((item) => {
           const button = document.createElement('button');
           button.type = 'button';
           button.className = 'desktop-icon';
-          button.setAttribute('aria-label', app.name);
+          button.setAttribute('aria-label', item.name);
           button.innerHTML = `
-            <div class="icon" aria-hidden="true">${app.icon}</div>
-            <span class="label">${app.name}</span>
+            <div class="icon" aria-hidden="true">${item.icon}</div>
+            <span class="label">${item.name}</span>
           `;
-          button.addEventListener('dblclick', () => openApp(app));
+
+          button.addEventListener('dblclick', () => openItem(item));
           desktopIcons.appendChild(button);
         });
       }
 
-      function renderStartMenu() {
-        apps.forEach((app) => {
-          const item = document.createElement('li');
-          item.innerHTML = `<span aria-hidden="true">${app.icon}</span><span>${app.name}</span>`;
-          item.addEventListener('click', () => {
-            openApp(app);
+      function buildStartMenu() {
+        appEntries.forEach((app) => {
+          const li = document.createElement('li');
+          li.innerHTML = `<span aria-hidden="true">${app.icon}</span><span>${app.name}</span>`;
+          li.addEventListener('click', () => {
+            openItem(app);
             toggleStartMenu(false);
           });
-          startMenuList.appendChild(item);
+          startMenuList.appendChild(li);
         });
       }
 
-      function createTaskbarItem(appName) {
+      function createTaskbarItem(label) {
         const taskItem = document.createElement('div');
         taskItem.className = 'taskbar-item active';
-        taskItem.textContent = appName;
-        taskItem.title = appName;
+        taskItem.textContent = label;
+        taskItem.title = label;
         taskItem.addEventListener('click', () => {
-          const targetWindow = [...document.querySelectorAll('.window')].find((win) => win.dataset.app === appName);
-          if (targetWindow) focusWindow(targetWindow);
+          const win = [...document.querySelectorAll('.window')].find((w) => w.dataset.app === label);
+          if (win) focusWindow(win);
         });
         taskbarWindowList.appendChild(taskItem);
         return taskItem;
       }
 
-      function openApp(app) {
-        const existing = document.querySelector(`.window[data-app="${app.name}"]`);
+      function openExplorerWindow() {
+        const appName = 'Apps Folder';
+        const existing = document.querySelector(`.window[data-app="${appName}"]`);
         if (existing) {
           focusWindow(existing);
           return;
@@ -477,13 +516,129 @@
 
         const win = document.createElement('div');
         win.className = 'window active';
-        win.dataset.app = app.name;
+        win.dataset.app = appName;
+        win.dataset.windowId = crypto.randomUUID();
+        win.style.left = '120px';
+        win.style.top = '60px';
+        win.style.width = '520px';
+        win.style.height = '430px';
+
+        const header = document.createElement('div');
+        header.className = 'window-header';
+        header.innerHTML = `
+          <div class="window-title">${appName}</div>
+          <div class="window-controls">
+            <button class="window-button" type="button" data-action="minimize">_</button>
+            <button class="window-button" type="button" data-action="maximize">□</button>
+            <button class="window-button" type="button" data-action="close">×</button>
+          </div>
+        `;
+
+        const body = document.createElement('div');
+        body.className = 'window-body';
+
+        const list = document.createElement('div');
+        list.className = 'file-list';
+
+        appEntries.forEach((app) => {
+          const item = document.createElement('div');
+          item.className = 'file-item';
+          item.innerHTML = `<div class="glyph">${app.icon}</div><div>${app.name}.html</div>`;
+          item.addEventListener('click', () => openItem(app));
+          list.appendChild(item);
+        });
+
+        body.appendChild(list);
+        win.appendChild(header);
+        win.appendChild(body);
+
+        const resize = document.createElement('div');
+        resize.className = 'resize-handle';
+        win.appendChild(resize);
+        windowLayer.appendChild(win);
+
+        const taskItem = createTaskbarItem(appName);
+        taskItem.dataset.windowId = win.dataset.windowId;
+        win.dataset.taskbarItem = taskItem.dataset.windowId;
+        windowMap.set(win.dataset.windowId, { win, taskItem });
+
+        attachWindowInteractions(win, appName, taskItem);
+        focusWindow(win);
+      }
+
+      function openItem(item) {
+        if (item.kind === 'explorer' || item.name === 'Apps Folder' || item.name === 'My Computer') {
+          openExplorerWindow();
+          return;
+        }
+
+        if (item.kind === 'bin') {
+          const emptyBin = document.querySelector('.window[data-app="Recycle Bin"]');
+          if (emptyBin) {
+            focusWindow(emptyBin);
+            return;
+          }
+
+          const win = document.createElement('div');
+          win.className = 'window active';
+          win.dataset.app = 'Recycle Bin';
+          win.dataset.windowId = crypto.randomUUID();
+          win.style.left = '200px';
+          win.style.top = '100px';
+          win.style.width = '300px';
+          win.style.height = '220px';
+
+          const header = document.createElement('div');
+          header.className = 'window-header';
+          header.innerHTML = `
+            <div class="window-title">Recycle Bin</div>
+            <div class="window-controls">
+              <button class="window-button" type="button" data-action="minimize">_</button>
+              <button class="window-button" type="button" data-action="maximize">□</button>
+              <button class="window-button" type="button" data-action="close">×</button>
+            </div>
+          `;
+
+          const body = document.createElement('div');
+          body.className = 'window-body';
+          body.innerHTML = `
+            <div style="display:grid;place-items:center;height:100%;font-size:16px;color:#333;background:#f5f5f5;border:2px solid #a0a0a0;">
+              Recycle Bin is empty.
+            </div>
+          `;
+
+          win.appendChild(header);
+          win.appendChild(body);
+          const resize = document.createElement('div');
+          resize.className = 'resize-handle';
+          win.appendChild(resize);
+          windowLayer.appendChild(win);
+
+          const taskItem = createTaskbarItem('Recycle Bin');
+          win.dataset.taskbarItem = taskItem.dataset.windowId;
+          taskItem.dataset.windowId = win.dataset.windowId;
+          windowMap.set(win.dataset.windowId, { win, taskItem });
+
+          attachWindowInteractions(win, 'Recycle Bin', taskItem);
+          focusWindow(win);
+          return;
+        }
+
+        const existing = document.querySelector(`.window[data-app="${item.name}"]`);
+        if (existing) {
+          focusWindow(existing);
+          return;
+        }
+
+        const win = document.createElement('div');
+        win.className = 'window active';
+        win.dataset.app = item.name;
         win.dataset.windowId = crypto.randomUUID();
 
         const width = Math.min(window.innerWidth * 0.72, 860);
         const height = Math.min(window.innerHeight * 0.68, 620);
-        const left = 80 + (windowMap.size * 24) % Math.max(80, window.innerWidth - width - 120);
-        const top = 60 + (windowMap.size * 18) % Math.max(40, window.innerHeight - height - 120);
+        const left = 100 + (windowMap.size * 22) % Math.max(30, window.innerWidth - width - 140);
+        const top = 70 + (windowMap.size * 18) % Math.max(30, window.innerHeight - height - 140);
 
         win.style.left = `${left}px`;
         win.style.top = `${top}px`;
@@ -493,43 +648,50 @@
         const header = document.createElement('div');
         header.className = 'window-header';
         header.innerHTML = `
-          <div class="window-title">${app.name}</div>
+          <div class="window-title">${item.name}</div>
           <div class="window-controls">
-            <button class="window-button" type="button" data-action="minimize" aria-label="Minimize ${app.name}">_</button>
-            <button class="window-button" type="button" data-action="maximize" aria-label="Maximize ${app.name}">□</button>
-            <button class="window-button" type="button" data-action="close" aria-label="Close ${app.name}">×</button>
+            <button class="window-button" type="button" data-action="minimize">_</button>
+            <button class="window-button" type="button" data-action="maximize">□</button>
+            <button class="window-button" type="button" data-action="close">×</button>
           </div>
         `;
 
         const body = document.createElement('div');
         body.className = 'window-body';
 
-        const frame = document.createElement('iframe');
-        frame.src = app.file;
-        frame.title = app.name;
-        frame.setAttribute('sandbox', 'allow-scripts allow-forms allow-same-origin allow-popups allow-modals');
+        const iframe = document.createElement('iframe');
+        iframe.src = item.file;
+        iframe.title = item.name;
+        iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-modals');
+        body.appendChild(iframe);
 
-        body.appendChild(frame);
         win.appendChild(header);
         win.appendChild(body);
 
-        const resizeHandle = document.createElement('div');
-        resizeHandle.className = 'resize-handle';
-        resizeHandle.title = 'Resize';
-        win.appendChild(resizeHandle);
+        const resize = document.createElement('div');
+        resize.className = 'resize-handle';
+        win.appendChild(resize);
 
         windowLayer.appendChild(win);
 
-        const taskItem = createTaskbarItem(app.name);
+        const taskItem = createTaskbarItem(item.name);
         taskItem.dataset.windowId = win.dataset.windowId;
         win.dataset.taskbarItem = taskItem.dataset.windowId;
-        windowMap.set(win.dataset.windowId, { win, taskItem, app });
+        windowMap.set(win.dataset.windowId, { win, taskItem });
 
+        attachWindowInteractions(win, item.name, taskItem);
+        focusWindow(win);
+      }
+
+      function attachWindowInteractions(win, title, taskItem) {
         let dragging = false;
-        let resize = false;
+        let resizing = false;
         let startX = 0;
         let startY = 0;
-        let originRect = null;
+        let origin = null;
+
+        const header = win.querySelector('.window-header');
+        if (!header) return;
 
         header.addEventListener('mousedown', (event) => {
           if (event.target.closest('.window-button')) return;
@@ -538,32 +700,33 @@
           const rect = win.getBoundingClientRect();
           startX = event.clientX;
           startY = event.clientY;
-          originRect = { left: rect.left, top: rect.top };
+          origin = { left: rect.left, top: rect.top };
         });
 
+        const resizeHandle = win.querySelector('.resize-handle');
         resizeHandle.addEventListener('mousedown', (event) => {
-          resize = true;
+          resizing = true;
           focusWindow(win);
           startX = event.clientX;
           startY = event.clientY;
-          originRect = { width: win.offsetWidth, height: win.offsetHeight };
+          origin = { width: win.offsetWidth, height: win.offsetHeight };
         });
 
         document.addEventListener('mousemove', (event) => {
-          if (dragging && originRect) {
+          if (dragging && origin) {
             const dx = event.clientX - startX;
             const dy = event.clientY - startY;
-            const nextLeft = Math.min(Math.max(originRect.left + dx, 0), window.innerWidth - 120);
-            const nextTop = Math.min(Math.max(originRect.top + dy, 0), window.innerHeight - 100);
+            const nextLeft = Math.min(Math.max(origin.left + dx, 0), window.innerWidth - 120);
+            const nextTop = Math.min(Math.max(origin.top + dy, 0), window.innerHeight - 100);
             win.style.left = `${nextLeft}px`;
             win.style.top = `${nextTop}px`;
           }
 
-          if (resize && originRect) {
+          if (resizing && origin) {
             const dx = event.clientX - startX;
             const dy = event.clientY - startY;
-            const nextWidth = Math.min(Math.max(originRect.width + dx, 260), window.innerWidth - 20);
-            const nextHeight = Math.min(Math.max(originRect.height + dy, 180), window.innerHeight - 70);
+            const nextWidth = Math.min(Math.max(origin.width + dx, 260), window.innerWidth - 18);
+            const nextHeight = Math.min(Math.max(origin.height + dy, 180), window.innerHeight - 65);
             win.style.width = `${nextWidth}px`;
             win.style.height = `${nextHeight}px`;
           }
@@ -571,23 +734,29 @@
 
         document.addEventListener('mouseup', () => {
           dragging = false;
-          resize = false;
-          originRect = null;
+          resizing = false;
+          origin = null;
         });
 
-        header.querySelector('[data-action="close"]').addEventListener('click', () => closeWindow(win));
-        header.querySelector('[data-action="minimize"]').addEventListener('click', () => {
+        const closeBtn = win.querySelector('[data-action="close"]');
+        const minimizeBtn = win.querySelector('[data-action="minimize"]');
+        const maximizeBtn = win.querySelector('[data-action="maximize"]');
+
+        closeBtn.addEventListener('click', () => closeWindow(win));
+
+        minimizeBtn.addEventListener('click', () => {
           win.style.display = 'none';
-          taskItem.style.opacity = '0.7';
+          taskItem.style.opacity = '0.6';
           taskItem.classList.remove('active');
         });
-        header.querySelector('[data-action="maximize"]').addEventListener('click', () => {
+
+        maximizeBtn.addEventListener('click', () => {
           if (win.dataset.maximized === 'true') {
             win.dataset.maximized = 'false';
-            win.style.left = win.dataset.prevLeft || '80px';
+            win.style.left = win.dataset.prevLeft || '100px';
             win.style.top = win.dataset.prevTop || '60px';
-            win.style.width = win.dataset.prevWidth || '760px';
-            win.style.height = win.dataset.prevHeight || '520px';
+            win.style.width = win.dataset.prevWidth || '700px';
+            win.style.height = win.dataset.prevHeight || '500px';
           } else {
             win.dataset.prevLeft = win.style.left;
             win.dataset.prevTop = win.style.top;
@@ -603,19 +772,19 @@
         });
 
         win.addEventListener('mousedown', () => focusWindow(win));
-        focusWindow(win);
       }
 
       function focusWindow(win) {
+        if (!win) return;
         const allWindows = document.querySelectorAll('.window');
         allWindows.forEach((w) => w.classList.remove('active'));
         win.classList.add('active');
 
-        const taskItems = [...document.querySelectorAll('.taskbar-item')];
+        const taskItems = document.querySelectorAll('.taskbar-item');
         taskItems.forEach((item) => item.classList.remove('active'));
 
-        const currentTask = [...taskItems].find((item) => item.textContent === win.dataset.app);
-        if (currentTask) currentTask.classList.add('active');
+        const associated = [...taskItems].find((item) => item.textContent === win.dataset.app);
+        if (associated) associated.classList.add('active');
       }
 
       function closeWindow(win) {
@@ -631,33 +800,29 @@
         startButton.setAttribute('aria-expanded', String(shouldOpen));
       }
 
-      function showDesktopMenu(event) {
-        event.preventDefault();
+      function buildContextMenu(x, y) {
         contextMenu.innerHTML = `
-          <div class="context-menu-item" data-action="refresh">Refresh</div>
           <div class="context-menu-item" data-action="explorer">Open Apps Folder</div>
+          <div class="context-menu-item" data-action="refresh">Refresh</div>
         `;
-
-        contextMenu.style.left = `${event.clientX}px`;
-        contextMenu.style.top = `${event.clientY}px`;
+        contextMenu.style.left = `${x}px`;
+        contextMenu.style.top = `${y}px`;
         contextMenu.classList.add('open');
+
+        contextMenu.querySelector('[data-action="explorer"]').addEventListener('click', () => {
+          openExplorerWindow();
+          contextMenu.classList.remove('open');
+        });
 
         contextMenu.querySelector('[data-action="refresh"]').addEventListener('click', () => {
           location.reload();
         });
-
-        contextMenu.querySelector('[data-action="explorer"]').addEventListener('click', () => {
-          openApp({ name: 'Apps Folder', file: 'Apps', icon: '📁' });
-          contextMenu.classList.remove('open');
-        });
       }
 
-      document.addEventListener('contextmenu', (event) => {
-        if (event.target.closest('#desktop') && !event.target.closest('.window')) {
-          showDesktopMenu(event);
-        } else {
-          contextMenu.classList.remove('open');
-        }
+      desktop.addEventListener('contextmenu', (event) => {
+        if (event.target.closest('.window')) return;
+        event.preventDefault();
+        buildContextMenu(event.clientX, event.clientY);
       });
 
       document.addEventListener('click', (event) => {
@@ -673,12 +838,11 @@
 
       function updateClock() {
         const now = new Date();
-        const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-        clockEl.textContent = timeString;
+        clockEl.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
       }
 
-      renderDesktopApps();
-      renderStartMenu();
+      buildDesktopIcons();
+      buildStartMenu();
       updateClock();
       setInterval(updateClock, 30000);
     </script>
