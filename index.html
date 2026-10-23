@@ -17,6 +17,7 @@
         --win98-blue: #000080;
         --win98-green: #008080;
         --taskbar-h: 42px;
+        --z-top: 1000;
       }
 
       * { box-sizing: border-box; }
@@ -111,10 +112,6 @@
         line-height: 1.15;
         font-size: 12px;
         word-break: break-word;
-      }
-
-      .desktop-icon.custom .icon {
-        background: rgba(255,255,255,0.07);
       }
 
       .shortcut-icon {
@@ -230,12 +227,13 @@
         position: absolute;
         display: flex;
         flex-direction: column;
+        min-width: 260px;
+        min-height: 160px;
         background: var(--win98-panel);
         border: 2px solid;
         border-color: var(--win98-light) var(--win98-shadow) var(--win98-shadow) var(--win98-light);
         box-shadow: 3px 3px 0 rgba(0,0,0,0.35);
-        min-width: 260px;
-        min-height: 160px;
+        user-select: none;
       }
 
       .window.active {
@@ -251,7 +249,6 @@
         height: 22px;
         padding: 2px 4px 2px 6px;
         cursor: move;
-        user-select: none;
       }
 
       .window-title {
@@ -266,6 +263,7 @@
         display: flex;
         align-items: center;
         gap: 2px;
+        cursor: default;
       }
 
       .window-button {
@@ -427,7 +425,7 @@
         position: absolute;
         left: 8px;
         bottom: 42px;
-        width: 220px;
+        width: 260px;
         background: var(--win98-bg);
         border: 2px solid;
         border-color: var(--win98-shadow) var(--win98-light) var(--win98-light) var(--win98-shadow);
@@ -445,8 +443,8 @@
       }
 
       .brand {
-        width: 28px;
-        background: linear-gradient(180deg, #767676, #c5c5c5);
+        width: 30px;
+        background: linear-gradient(180deg, #7d7d7d, #d9d9d9);
         color: #fff;
         display: flex;
         align-items: center;
@@ -463,7 +461,7 @@
         flex: 1;
         list-style: none;
         margin: 0;
-        padding: 4px;
+        padding: 4px 4px 8px;
         background: var(--win98-panel);
       }
 
@@ -471,14 +469,19 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 6px 8px;
+        padding: 8px 10px;
         font-size: 12px;
         cursor: pointer;
+        border: 1px solid transparent;
       }
 
       #start-menu-list li:hover {
         background: var(--win98-blue);
         color: white;
+      }
+
+      #start-menu-list li + li {
+        margin-top: 2px;
       }
 
       #taskbar-window-list {
@@ -528,7 +531,7 @@
       .context-menu {
         position: absolute;
         z-index: 200;
-        min-width: 160px;
+        min-width: 180px;
         background: var(--win98-bg);
         border: 2px solid;
         border-color: var(--win98-shadow) var(--win98-light) var(--win98-light) var(--win98-shadow);
@@ -674,14 +677,6 @@
       .login-actions button:active {
         border-color: var(--win98-shadow) var(--win98-light) var(--win98-light) var(--win98-shadow);
       }
-
-      #desktop.hidden {
-        display: none;
-      }
-
-      #taskbar.hidden {
-        display: none;
-      }
     </style>
   </head>
   <body>
@@ -776,7 +771,7 @@
       const passwordInput = document.getElementById('password');
 
       const windowMap = new Map();
-      let loginReady = false;
+      let zCounter = 10;
       let audioCtx = null;
 
       function makeWindowId() {
@@ -794,7 +789,7 @@
         if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
       }
 
-      function playBootTone(freq, duration, type='square', volume=0.05, delay=0) {
+      function playBootTone(freq, duration, type = 'square', volume = 0.05, delay = 0) {
         if (!audioCtx) return;
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
@@ -828,7 +823,6 @@
       function finishLogin() {
         const user = usernameInput.value.trim() || 'guest';
         if (user) {
-          loginReady = true;
           loginScreen.style.display = 'none';
           desktop.style.display = 'block';
           taskbar.style.display = 'flex';
@@ -843,7 +837,7 @@
         allShortcuts.forEach((item) => {
           const button = document.createElement('button');
           button.type = 'button';
-          button.className = 'desktop-icon custom';
+          button.className = 'desktop-icon';
           button.setAttribute('aria-label', item.name);
 
           let iconMarkup = '<span class="shortcut-icon shortcut-app"></span>';
@@ -887,6 +881,30 @@
         return taskItem;
       }
 
+      function bringToFront(win) {
+        zCounter += 1;
+        win.style.zIndex = String(zCounter);
+      }
+
+      function focusWindow(win) {
+        if (!win) return;
+        if (win.style.display === 'none') win.style.display = 'flex';
+
+        document.querySelectorAll('.window').forEach((w) => {
+          w.classList.remove('active');
+        });
+        win.classList.add('active');
+        bringToFront(win);
+
+        document.querySelectorAll('.taskbar-item').forEach((item) => {
+          item.classList.remove('active');
+          item.style.opacity = '1';
+        });
+
+        const matchingTask = [...document.querySelectorAll('.taskbar-item')].find((item) => item.textContent === win.dataset.app);
+        if (matchingTask) matchingTask.classList.add('active');
+      }
+
       function openComputerWindow() {
         const title = 'My Computer';
         const existing = document.querySelector(`.window[data-app="${title}"]`);
@@ -921,19 +939,14 @@
 
         const computerList = document.createElement('div');
         computerList.className = 'computer-list';
-        const drives = [
-          { name: 'Local Disk (C:)', icon: '💾' },
-          { name: 'Giggle Apps', icon: '📁' },
-          { name: 'Network', icon: '🌐' }
-        ];
-        drives.forEach((item) => {
-          const el = document.createElement('div');
-          el.className = 'computer-item';
-          el.innerHTML = `<span>${item.icon}</span><span>${item.name}</span>`;
-          computerList.appendChild(el);
+        ['Local Disk (C:)', 'Giggle Apps', 'Network'].forEach((name) => {
+          const item = document.createElement('div');
+          item.className = 'computer-item';
+          item.innerHTML = `<span>${name.includes('Disk') ? '💾' : name.includes('Giggle') ? '📁' : '🌐'}</span><span>${name}</span>`;
+          computerList.appendChild(item);
         });
-        body.appendChild(computerList);
 
+        body.appendChild(computerList);
         win.appendChild(header);
         win.appendChild(body);
 
@@ -1065,12 +1078,10 @@
           openComputerWindow();
           return;
         }
-
         if (item.kind === 'folder') {
           openExplorerWindow();
           return;
         }
-
         if (item.kind === 'bin') {
           openRecycleBinWindow();
           return;
@@ -1197,8 +1208,11 @@
 
         minimizeBtn.addEventListener('click', () => {
           win.style.display = 'none';
-          taskItem.style.opacity = '0.6';
-          taskItem.classList.remove('active');
+          const active = [...taskbarWindowList.children].find((item) => item.textContent === win.dataset.app);
+          if (active) {
+            active.classList.remove('active');
+            active.style.opacity = '0.7';
+          }
         });
 
         maximizeBtn.addEventListener('click', () => {
@@ -1208,6 +1222,7 @@
             win.style.top = win.dataset.prevTop || '60px';
             win.style.width = win.dataset.prevWidth || '700px';
             win.style.height = win.dataset.prevHeight || '500px';
+            win.style.zIndex = String(zCounter);
           } else {
             win.dataset.prevLeft = win.style.left;
             win.dataset.prevTop = win.style.top;
@@ -1218,30 +1233,12 @@
             win.style.top = '0px';
             win.style.width = `${window.innerWidth - 4}px`;
             win.style.height = `${window.innerHeight - 42}px`;
+            bringToFront(win);
           }
           focusWindow(win);
         });
 
         win.addEventListener('mousedown', () => focusWindow(win));
-      }
-
-      function focusWindow(win) {
-        if (!win) return;
-        if (win.style.display === 'none') {
-          win.style.display = 'flex';
-        }
-        const allWindows = document.querySelectorAll('.window');
-        allWindows.forEach((w) => w.classList.remove('active'));
-        win.classList.add('active');
-
-        const taskItems = document.querySelectorAll('.taskbar-item');
-        taskItems.forEach((item) => {
-          item.classList.remove('active');
-          item.style.opacity = '1';
-        });
-
-        const associated = [...taskItems].find((item) => item.textContent === win.dataset.app);
-        if (associated) associated.classList.add('active');
       }
 
       function closeWindow(win) {
@@ -1287,21 +1284,28 @@
         clockEl.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
       }
 
-      startButton.addEventListener('click', () => toggleStartMenu());
+      startButton.addEventListener('click', (event) => {
+        event.stopPropagation();
+        toggleStartMenu();
+      });
 
       document.addEventListener('click', (event) => {
         if (!startMenu.contains(event.target) && !startButton.contains(event.target)) {
           toggleStartMenu(false);
         }
-        if (!contextMenu.contains(event.target) && !event.target.closest('#desktop')) {
+        if (!contextMenu.contains(event.target) && event.target !== desktop && !desktop.contains(event.target)) {
           contextMenu.classList.remove('open');
         }
       });
 
       desktop.addEventListener('contextmenu', (event) => {
-        if (event.target.closest('.window')) return;
+        const withinWindow = event.target.closest('.window');
+        if (withinWindow) return;
         event.preventDefault();
-        buildContextMenu(event.clientX, event.clientY);
+        const rect = desktop.getBoundingClientRect();
+        const x = Math.min(event.clientX - rect.left + 8, rect.width - 180);
+        const y = Math.min(event.clientY - rect.top + 8, rect.height - 120);
+        buildContextMenu(x, y);
       });
 
       document.getElementById('login-submit').addEventListener('click', () => {
