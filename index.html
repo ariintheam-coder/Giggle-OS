@@ -779,6 +779,13 @@
       let loginReady = false;
       let audioCtx = null;
 
+      function makeWindowId() {
+        if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+          return window.crypto.randomUUID();
+        }
+        return `window-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      }
+
       function ensureAudio() {
         if (!audioCtx) {
           const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -869,7 +876,12 @@
         taskItem.title = label;
         taskItem.addEventListener('click', () => {
           const win = [...document.querySelectorAll('.window')].find((w) => w.dataset.app === label);
-          if (win) focusWindow(win);
+          if (win) {
+            if (win.style.display === 'none') {
+              win.style.display = 'flex';
+            }
+            focusWindow(win);
+          }
         });
         taskbarWindowList.appendChild(taskItem);
         return taskItem;
@@ -879,6 +891,7 @@
         const title = 'My Computer';
         const existing = document.querySelector(`.window[data-app="${title}"]`);
         if (existing) {
+          if (existing.style.display === 'none') existing.style.display = 'block';
           focusWindow(existing);
           return;
         }
@@ -886,7 +899,7 @@
         const win = document.createElement('div');
         win.className = 'window active';
         win.dataset.app = title;
-        win.dataset.windowId = crypto.randomUUID();
+        win.dataset.windowId = makeWindowId();
         win.style.left = '170px';
         win.style.top = '80px';
         win.style.width = '440px';
@@ -942,6 +955,7 @@
         const title = 'Apps Folder';
         const existing = document.querySelector(`.window[data-app="${title}"]`);
         if (existing) {
+          if (existing.style.display === 'none') existing.style.display = 'block';
           focusWindow(existing);
           return;
         }
@@ -949,7 +963,7 @@
         const win = document.createElement('div');
         win.className = 'window active';
         win.dataset.app = title;
-        win.dataset.windowId = crypto.randomUUID();
+        win.dataset.windowId = makeWindowId();
         win.style.left = '130px';
         win.style.top = '70px';
         win.style.width = '520px';
@@ -1001,6 +1015,7 @@
         const title = 'Recycle Bin';
         const existing = document.querySelector(`.window[data-app="${title}"]`);
         if (existing) {
+          if (existing.style.display === 'none') existing.style.display = 'block';
           focusWindow(existing);
           return;
         }
@@ -1008,7 +1023,7 @@
         const win = document.createElement('div');
         win.className = 'window active';
         win.dataset.app = title;
-        win.dataset.windowId = crypto.randomUUID();
+        win.dataset.windowId = makeWindowId();
         win.style.left = '200px';
         win.style.top = '100px';
         win.style.width = '300px';
@@ -1051,7 +1066,7 @@
           return;
         }
 
-        if (item.kind === 'folder' || item.name === 'Apps Folder' || item.name === 'My Computer') {
+        if (item.kind === 'folder') {
           openExplorerWindow();
           return;
         }
@@ -1063,6 +1078,7 @@
 
         const existing = document.querySelector(`.window[data-app="${item.name}"]`);
         if (existing) {
+          if (existing.style.display === 'none') existing.style.display = 'block';
           focusWindow(existing);
           return;
         }
@@ -1070,7 +1086,7 @@
         const win = document.createElement('div');
         win.className = 'window active';
         win.dataset.app = item.name;
-        win.dataset.windowId = crypto.randomUUID();
+        win.dataset.windowId = makeWindowId();
 
         const width = Math.min(window.innerWidth * 0.72, 860);
         const height = Math.min(window.innerHeight * 0.68, 620);
@@ -1143,6 +1159,7 @@
         });
 
         resizeHandle.addEventListener('mousedown', (event) => {
+          event.preventDefault();
           resizing = true;
           focusWindow(win);
           startX = event.clientX;
@@ -1210,12 +1227,18 @@
 
       function focusWindow(win) {
         if (!win) return;
+        if (win.style.display === 'none') {
+          win.style.display = 'flex';
+        }
         const allWindows = document.querySelectorAll('.window');
         allWindows.forEach((w) => w.classList.remove('active'));
         win.classList.add('active');
 
         const taskItems = document.querySelectorAll('.taskbar-item');
-        taskItems.forEach((item) => item.classList.remove('active'));
+        taskItems.forEach((item) => {
+          item.classList.remove('active');
+          item.style.opacity = '1';
+        });
 
         const associated = [...taskItems].find((item) => item.textContent === win.dataset.app);
         if (associated) associated.classList.add('active');
